@@ -21,22 +21,54 @@ Marketplace.
   - **Token Plan:** 5-Hour Limit progress bar with "Resets in"
     and "Quota Used"; Weekly Limit progress bar with "Resets in"
     and "Quota Used".
-  - **Credits:** Balance. If data is available, also Hourly Usage,
-    5 Hours Usage, Daily Usage, Weekly Usage.
+  - **Credits:** Balance (endpoint TBD per
+    `.kitchen/architecture/api-contract.md` § 3.1 — see
+    "open flags" below).
 - Polling strategy for near-realtime data (rate-limit-aware).
 - Error states: invalid key, expired key, network down, rate
   limited.
+- Settings: API key (held in VSCode SecretStorage, never in
+  settings JSON), region picker (Overseas / Mainland China,
+  default Overseas), display mode (Token Plan / Credits / Both).
 - CI on every PR; publish pipeline on `main` release.
 - User-facing docs in `/docs/`.
 
+## Open flags (recorded 2026-06-02)
+
+These are decisions or unknowns that the team is tracking into
+phase 02 / 04 / 05. None of them are blockers for phase 02 to
+begin, but each must be resolved before phase 04 is locked.
+
+- **Credits endpoint identity** — Bearer auth on the credits
+  endpoint is unverified. Phase 02 narrows the candidate
+  endpoints (see `api-contract.md` § 3.1). Phase 04 sends a real
+  request and captures the live response. If Bearer is rejected
+  on every candidate, the extension surfaces a clear
+  "Credits Balance unavailable" state and the picker entries
+  are greyed out — no silent cookie fallback. See discussion
+  record and the contract for the full rule.
+- **`[AMBIGUOUS]` markers** in the contract (timestamp units,
+  success envelope, `Referer` requirement) are deferred to phase
+  05 live verification with a real Subscription Key. Phase 02/04
+  code is written defensively so a unit mismatch is a one-line
+  fix.
+
 ## Out of scope (deferred to later versions)
 
+- **Historical usage timeseries** (Hourly Usage, 5-Hours Usage,
+  Daily Usage, Weekly Usage). Reason: the documented API does
+  not expose a programmatic timeseries endpoint for historical
+  credit usage; defer until the platform extends support. May be
+  added in v0.2.0+ if the official API extends support.
 - Multiple profiles / workspaces.
 - Notification on threshold breach (e.g. "you used 80% of weekly
   quota").
 - Custom polling intervals.
 - Theming / custom colors.
 - Localisation beyond English.
+- Auto-detect of the Subscription Key's region (overseas vs
+  Mainland China) from the key shape. v0.1.0 is user-picked;
+  v0.2.0 candidate.
 
 ## Phases
 

@@ -1,6 +1,6 @@
 # API Contract — MiniMax Usage Data
 
-- **Status:** draft for review
+- **Status:** in review — confirmed scope decisions from the project owner, 2026-06-02
 - **Owner:** `solution-architect` + `business-analyst` (Phase 01 — Discovery)
 - **Last updated:** 2026-06-02
 - **Covers:** v0.1.0
@@ -11,6 +11,37 @@ to the MiniMax platform. The `technical-architect` (Phase 02),
 align to it. If a real response disagrees with anything here, this
 document is wrong — open a follow-up discovery record, do not patch
 code in silence.
+
+## Decisions confirmed by the project owner (2026-06-02)
+
+The original Phase 01 draft deferred both **Credits Balance** and
+**historical usage timeseries** because the documented API did not
+expose them. The project owner reviewed the draft and called:
+
+- **Credits Balance stays in v0.1.0.** The team will use the same
+  Bearer Subscription Key auth pattern as `token_plan/remains` and
+  attempt to call the credits endpoint with it. If the platform
+  accepts Bearer on the wire, the contract commits to the endpoint
+  and response shape. If it does not, the extension surfaces a
+  clear "Credits Balance unavailable" message and the picker
+  entries are greyed out with a "Coming in a future version" tag.
+  We will **not** fall back to cookie auth — that is out of scope
+  and against the platform's session model.
+- **Historical usage timeseries (Hourly / 5-Hours / Daily / Weekly)
+  is out of v0.1.0 scope.** Reason: the documented API does not
+  expose a programmatic timeseries endpoint. The decision is
+  **deferred** — it may be added in v0.2.0+ if the platform
+  extends support.
+- The four smaller Phase 01 recommendations are approved
+  (region user-picked; modal label "Quota used" with value
+  `100 − remaining_percent`; invalid-key error copy
+  distinguishes Subscription Key from Open Platform API Key;
+  `[AMBIGUOUS]` resolution deferred to phase 05 live
+  verification).
+
+These calls are reflected in the sections below. See
+`.kitchen/discussion/2026-06-02-discovery.md` § "Decisions
+confirmed by the project owner" for the full record.
 
 ## Scope of v0.1.0 (in one paragraph)
 
@@ -369,51 +400,104 @@ export interface ErrorResponse {
 }
 ```
 
-## 3. Out of scope (deferred or unavailable for v0.1.0)
+## 3. Scope clarifications
 
-### 3.1 Credits balance (purchased Credits)
+The platform surface area is bigger than the v0.1.0 scope. This
+section captures what's in, what's deferred, and why.
 
-> v0.1.0 roadmap § "Scope (in)" says "Credits: Balance. If data is
-> available, also Hourly Usage, 5 Hours Usage, Daily Usage, Weekly
-> Usage." The contract must say what is and is not available.
+### 3.1 Credits balance (purchased Credits) — **in scope for v0.1.0**
 
-- **Token Plan + purchased Credits share a quota and are visible in
-  the usage bar** shown by the same `token_plan/remains` endpoint
-  (DOC: `https://platform.minimax.io/docs/token-plan/faq` §
-  "What is a Subscription Key?" — "The Subscription Key is the key
-  used for both included Token Plan credits and purchased Credits.").
-  The 5-hour and weekly progress bars therefore already account for
-  any purchased Credits that have been drawn.
-- **A standalone "Credits Balance" number (recharge / gift)** is
-  available on the official web console at
-  `https://platform.minimaxi.com/console/usage` but, per the
-  reference implementation's own README § "已知限制"
-  ("Known limits"): "积分余额（充值/赠送）不在本工具中显示。
-  MiniMax 官方积分接口（`/backend/account/token_plan_credit`）仅支持
-  Cookie 鉴权，纯后端工具（VSCode 扩展 / CLI）无法调用。"
-  Translation: the official credits endpoint requires cookie
-  session auth and is not callable from a backend tool.
+> Project owner decision (2026-06-02): keep the "Credits: Balance"
+> requirement in v0.1.0. The team will use the same Bearer
+> Subscription Key auth as `token_plan/remains` and try it against
+> the credits endpoint.
 
-  **Decision for v0.1.0:** the modal does **not** show a separate
-  "Credits Balance" line. The Token Plan progress bars cover the
-  user's primary need (see how much of their quota is left). If the
-  user wants the credit balance, the docs in `/docs/` will point
-  them at the web console. See discussion record for the open
-  follow-up question.
+**Strategy.** Use the same `Authorization: Bearer <Subscription Key>`
+header pattern as `token_plan/remains` and send a request to the
+documented credits endpoint. If the platform accepts Bearer on the
+wire, the contract commits to the endpoint, response shape, and a
+source citation. If the platform rejects Bearer (401 / 403 / explicit
+cookie-required response), the extension surfaces a clear
+"Credits Balance unavailable from the official API" message and the
+"CREDITS" / "BOTH" picker entries are greyed out with a
+"Coming in a future version" tag.
 
-### 3.2 Hourly / 5-Hours / Daily / Weekly usage **history**
+**No silent cookie fallback.** We do not switch to cookie / session
+auth. That is out of scope and against the platform's session
+model. The user has approved this rule explicitly.
 
-The v0.1.0 roadmap asks for "Hourly Usage, 5 Hours Usage, Daily
-Usage, Weekly Usage" as supplementary fields. The
-`token_plan/remains` endpoint returns **current** 5-hour and weekly
-percentages — not historical usage timeseries. The official docs do
-not list a timeseries endpoint, and the reference implementation
-synthesises "last day / last 7 days" from the `account/amount`
-billing-records endpoint, which is also out of v0.1.0 scope.
+**Endpoint: `[AMBIGUOUS — endpoint TBD]`.** Candidates the team
+will evaluate in phase 02 / 04, in priority order:
 
-**Decision for v0.1.0:** those historical usage lines are not
-shown. The two progress bars + countdowns are the entire
-"Token Plan" view. Flagged in the discussion record.
+1. **`https://www.minimax.io/backend/account/token_plan_credit`**
+   (overseas; mainland China: `https://www.minimaxi.com/backend/account/token_plan_credit`).
+   The reference repo's README § "已知限制" claims this endpoint
+   exists but is cookie-session-only. The claim is unverified for
+   our auth; the team will send a Bearer request and see what
+   comes back.
+2. **`https://www.minimax.io/v1/account/credit`** (provisional; not
+   cited in the official docs). Path inferred from the
+   `v1/...` namespace. Phase 02 to confirm.
+3. **A sibling field of `token_plan/remains`.** The response
+   already includes a snapshot of purchased Credits drawdown; the
+   team will check whether a balance field is also present in the
+   same payload. If yes, no new endpoint is needed.
+
+**Resolution plan.**
+
+1. Phase 02 (architecture) confirms the most likely endpoint and
+   the response shape via the platform's public docs, the
+   reference repo's behaviour, and (if available) OpenClaw's
+   third-party docs.
+2. Phase 04 (build) sends a real Bearer-keyed request and
+   captures the actual response (redacted) in a follow-up
+   discussion record.
+3. If Bearer works, the contract is updated with the endpoint,
+   response shape, and source citation. The modal surfaces a
+   "Balance: $X.XX" line (or credits-units, depending on the
+   response). The TS types in § 5 gain a `CreditBalanceResponse`
+   shape.
+4. If Bearer does not work, the extension falls back to the
+   "unavailable" state described above. The team updates the
+   contract with the actual error response and the "deferred to
+   a future version" decision, and reports the live 401/403 back
+   to the project owner.
+5. The decision and the live evidence are captured in a follow-up
+   discussion record before phase 05 begins.
+
+**Token Plan + purchased Credits overlap.** Note that the Token
+Plan 5-hour and weekly progress bars already account for
+purchased Credits that have been drawn (DOC:
+`https://platform.minimax.io/docs/token-plan/faq` § "What is a
+Subscription Key?" — "The Subscription Key is the key used for
+both included Token Plan credits and purchased Credits."). The
+standalone "Credits Balance" is a *remaining wallet* number, not
+the *consumed* number — it is a different signal from the
+progress bars, and that is why the user wants it surfaced
+separately.
+
+### 3.2 Hourly / 5-Hours / Daily / Weekly usage **history** — **deferred**
+
+**Out of v0.1.0 scope.** Project owner decision (2026-06-02)
+confirms the deferral.
+
+**Reason:** `token_plan/remains` returns a current snapshot of
+usage (5-hour and weekly percentages), not a historical
+timeseries. The official docs do not list a programmatic
+timeseries endpoint. The reference implementation synthesises
+"last day / last 7 days" from the `account/amount` billing-
+records endpoint, which is also not in the official docs and is
+not on the Token Plan / Pay-as-you-go surface.
+
+**Future-friendly note:** may be added in v0.2.0+ **if the
+official API extends support for a programmatic usage timeseries
+endpoint.** We will not synthesise a timeseries from the snapshot
+or scrape the web console to construct one.
+
+**User-facing note:** the modal does not display Hourly /
+5-Hours / Daily / Weekly usage lines. If the user needs that
+view, the user-facing docs in `/docs/` will point at the
+MiniMax console.
 
 ### 3.3 Plan expiry date
 
@@ -569,9 +653,11 @@ export function classifyError(code: number): ErrorClass {
 
 ## 6. Open questions and `[AMBIGUOUS]` markers
 
-These are the items this contract **does not fully nail down**. The
-project owner is asked to confirm or correct before Phase 02 begins.
-Each is also flagged in the discovery discussion record.
+These are the items this contract **does not fully nail down**.
+The project owner has resolved the scope questions; the items
+below are technical open questions that need live verification or
+phase 02/04 work to close. Each is also flagged in the discovery
+discussion record.
 
 ### 6.1 `Referer` header
 
@@ -583,16 +669,17 @@ either (a) add it explicitly in the contract and cite the live
 response, or (b) escalate to the project owner. Do not silently add
 a hard-coded `Referer` to ship a green test.
 
-### 6.2 Region auto-detection
+### 6.2 Region auto-detection — **resolved for v0.1.0**
 
-The official docs say the key region is decided at subscription
-time, but neither docs nor reference implementation describe a
-reliable way to parse the region from the key itself. The mmx-cli
-**does** auto-detect (per `https://platform.minimax.io/docs/token-plan/minimax-cli`),
-but the algorithm is not published. **The v0.1.0 contract requires
-the user to pick a region in the settings UI** — same UX the
-project owner's existing `kilo-code` / `roo-code` extensions
-typically use. Auto-detection is a v0.2.0 candidate.
+**Resolution (2026-06-02):** v0.1.0 is **user-picked** — the
+settings UI offers an Overseas / Mainland China region picker
+(default Overseas). The extension uses the matching host. Auto-
+detection is a v0.2.0 candidate because the mmx-cli algorithm is
+not published.
+
+A mainland-China-key + overseas-host (or vice versa) configuration
+surfaces as "invalid key" with explicit copy mentioning the
+region toggle — see edge case G in the discovery record.
 
 ### 6.3 Timestamp units
 
@@ -627,6 +714,22 @@ OpenClaw's plugin docs confirm that path is in active use. The
 contract is built on the current documentation. If a real response
 fails auth in Phase 02, the first move is to add `Referer`
 (§ 6.1) and re-test; the second move is to escalate.
+
+### 6.6 Credits balance endpoint — **new open question, in scope**
+
+Per § 3.1, the Credits Balance is in v0.1.0 scope. The endpoint
+identity and Bearer-auth acceptance are not yet established. Phase
+02 (architecture) will evaluate the candidate endpoints named in
+§ 3.1 and pick the most likely. Phase 04 (build) will send a real
+request and capture the live response. The contract is updated
+with the chosen endpoint, response shape, and source citation
+before the build is locked. The project owner is asked to provide
+a real Subscription Key for this verification.
+
+If Bearer is rejected on every candidate, the extension falls back
+to the "unavailable" UX (no silent cookie fallback) and the
+endpoint decision is recorded in a follow-up discussion record.
+This is not a silent de-scope — the project owner is informed.
 
 ## 7. Source citations (consolidated)
 

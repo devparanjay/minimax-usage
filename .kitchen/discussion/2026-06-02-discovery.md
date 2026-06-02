@@ -199,14 +199,26 @@ behaviours; the build phase implements them.
 ### A. Invalid key
 
 - **Trigger:** Subscription Key is mistyped, revoked, or
-  replaced on the platform.
+  replaced on the platform. **Also covers:** the user pasted
+  their Pay-as-you-go API Key (the Open Platform API Key) by
+  mistake — the two are not interchangeable.
 - **Detection:** HTTP 401, or HTTP 200 with
   `base_resp.status_code` in `{1004, 2049}`.
 - **UX:** Status bar shows a red warning icon and the text
   "Sign in". Clicking opens the modal which shows: "Couldn't
-  verify your Token Plan key. Open settings to enter a new
-  one." A "Open Settings" button is the only call to action.
-  The extension does **not** retry.
+  verify your Token Plan key. Make sure you're using your
+  **Subscription Key** from **Billing → Token Plan**, not your
+  **Open Platform API Key** from Account → Basic Information.
+  Open settings to enter a new key." A "Open Settings" button
+  is the only call to action. The extension does **not** retry.
+  (Phase 03 refines the final strings; the structure is
+  committed here.)
+- **Region hint:** if the user picks the wrong region
+  (mainland China vs overseas), the response is the same as
+  invalid key on the wire. The modal copy additionally mentions
+  "If you subscribed on a different platform (overseas vs
+  Mainland China), switch the region in settings." See edge
+  case G.
 
 ### B. Expired key
 
@@ -416,6 +428,107 @@ The orchestrator (FooFoo) is asked to:
 4. Hold the v0.2.0 backlog item: "Add Credits balance line
    when a programmatic endpoint is available or auto-detect
    the key region from the key shape."
+
+## Decisions confirmed by the project owner (2026-06-02)
+
+The project owner reviewed the items in the "What is still
+unknown" section above and called each one. This section
+captures the calls and the resulting scope / contract changes.
+
+### 1. Live verification of `[AMBIGUOUS]` fields
+
+**Decision:** defer to phase 05 with a real Subscription Key.
+Phase 02 / 04 code is written defensively so a unit mismatch
+(`ms` vs `s`) is a one-line fix, not a rewrite. When the
+project owner provides a key, the team captures one redacted
+response, attaches it to a follow-up discussion record, and
+resolves each `[AMBIGUOUS]` marker. If the live response
+contradicts the contract, the contract changes — not the code
+in silence.
+
+**Status:** open until phase 05. Not a phase 02 blocker.
+
+### 2. Region auto-detection
+
+**Decision:** v0.1.0 is **user-picked**. Settings UI offers
+Overseas / Mainland China picker (default Overseas). v0.2.0
+candidate for auto-detect, once the mmx-cli algorithm is
+publicly documented or reverse-engineered with the project's
+blessing.
+
+**Contract change:** `api-contract.md` § 6.2 marked
+"resolved for v0.1.0".
+
+### 3. Credits balance line and historical usage lines
+
+**Decision (Credits Balance):** **stays in v0.1.0 scope.** The
+team will use the same Bearer Subscription Key auth as
+`token_plan/remains` and try it against the credits endpoint.
+If Bearer is accepted on the wire, the endpoint and response
+shape are committed in the contract. If Bearer is rejected,
+the extension surfaces a clear "Credits Balance unavailable"
+message and the picker entries are greyed out. **No silent
+cookie fallback.**
+
+**Decision (historical usage timeseries):** **deferred to a
+future version.** Reason: the documented API does not expose a
+programmatic timeseries endpoint for historical credit usage.
+May be added in v0.2.0+ if the official API extends support.
+We will not synthesise a timeseries from the snapshot or scrape
+the web console.
+
+**Contract change:** `api-contract.md` § 3.1 rewritten
+(Credits Balance in scope, Bearer-auth strategy, resolution
+plan, no-cookie-fallback rule). § 3.2 rewritten (deferred with
+recorded reason and future-friendly note). New § 6.6 added
+to track the credits-endpoint open question.
+
+**Roadmap change:** `roadmaps/v0.1.0/roadmap.md` § "Scope
+(in)" keeps Credits Balance, drops the historical-usage
+phrases. § "Out of scope (deferred to later versions)" now
+records the historical-usage deferral with the reason.
+
+### 4. Display semantics — "remaining %" vs "consumed %"
+
+**Decision:** the bar label is **"Quota used"** with the
+value computed as `100 − remaining_percent`. The platform's
+console uses the same convention. The contract commits to
+"remaining %" semantics (matches the official docs, the
+reference repo, and OpenClaw's plugin docs). The label/value
+mismatch is resolved at the presentation layer in phase 03.
+
+**Contract change:** none — the semantics were already
+committed; only the display mapping is fixed.
+
+### 5. Subscription Key vs Pay-as-you-go API Key messaging
+
+**Decision:** the invalid-key error copy **explicitly
+distinguishes** the two key types. Recommended copy (for phase
+03 to refine): "Couldn't verify your Token Plan key. Make sure
+you're using your **Subscription Key** from **Billing → Token
+Plan**, not your **Open Platform API Key** from Account →
+Basic Information." This is a small string-add that prevents a
+confused support email.
+
+**Contract change:** the error-state UX for "invalid key" in
+the discussion record § "Edge cases A" is updated to include
+this copy guidance. Phase 03 confirms the final strings.
+
+### Summary of scope changes from this discussion
+
+- Credits Balance: **in** (was: deferred). With Bearer-auth
+  attempt as the strategy; no silent cookie fallback.
+- Historical usage timeseries: **deferred** (was: "if
+  possible"). Reason recorded; future-friendly note added.
+- Region auto-detect: **deferred to v0.2.0** (was: open).
+- "Quota used" label / `100 − remaining_percent` value: **fixed**
+  (was: open).
+- Subscription Key vs Open Platform API Key messaging:
+  **added to invalid-key UX** (was: generic).
+
+The contract, the v0.1.0 roadmap, and the discussion record
+have been updated to reflect these calls. Phase 02 (architecture)
+opens next with the updated contract as the source of truth.
 
 ## Related documents
 

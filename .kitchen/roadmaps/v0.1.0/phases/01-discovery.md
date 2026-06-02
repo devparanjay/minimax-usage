@@ -1,7 +1,8 @@
 # Phase 01 — Discovery
 
 **Owner:** `solution-architect` (lead) + `business-analyst` (support)
-**Status:** not started
+**Status:** complete
+**Last updated:** 2026-06-02
 **Goal:** produce a verified API contract for MiniMax usage data and
 confirm the user story, edge cases, and acceptance criteria for v0.1.0.
 
@@ -41,6 +42,58 @@ checked off and the API contract document is reviewed.
   (URL + section) for every endpoint and field.
 - Where the docs are silent, the contract records the ambiguity
   explicitly and the project owner is asked.
+
+## Outcome (delivered 2026-06-02)
+
+- API contract written to
+  `.kitchen/architecture/api-contract.md`. Endpoints, auth,
+  request/response shapes, error responses, caching guidance,
+  TypeScript types, and an example JSON payload are in the
+  document. Every endpoint and field is either cited to the
+  official docs or marked `[AMBIGUOUS]` with a Phase 02
+  verification step.
+- Discovery discussion record at
+  `.kitchen/discussion/2026-06-02-discovery.md` — what was
+  learned, what was decided, what was flagged back to the
+  project owner.
+- Edge cases for v0.1.0 captured in the discussion record:
+  invalid key, expired key, network down, rate limit, partial
+  data, quota exhausted, region mismatch, transient server
+  error — each with the expected user experience.
+- Reference repo license (MIT) was confirmed compatible with
+  the "reference use" policy in ADR 0003. No code or
+  non-trivial structure was copied from the reference repo.
+
+### Scope changes flagged to the project owner
+
+The v0.1.0 roadmap originally listed "Credits: Balance" and
+historical usage timeseries ("Hourly Usage / 5 Hours Usage /
+Daily Usage / Weekly Usage") as in-scope. Discovery found:
+
+- The standalone "Credits Balance" number lives on a
+  cookie-only endpoint that is not callable from a backend
+  tool. The Token Plan progress bars already include any
+  purchased-Credit draw.
+- The `token_plan/remains` endpoint returns a *current*
+  snapshot, not a timeseries. There is no documented
+  timeseries endpoint.
+
+**Decision:** both lines are deferred. v0.1.0 ships the two
+progress bars + countdowns. See the discussion record § 8 and
+the contract § 3 for the rationale and the v0.2.0 follow-up.
+
+### Open `[AMBIGUOUS]` items to resolve in Phase 02
+
+- Success envelope shape (does `base_resp` appear on 200s?).
+- Timestamp units (ms vs s for `start_time`, `remains_time`,
+  `weekly_remains_time`, `weekly_start_time`, `weekly_end_time`).
+- Whether the `Referer` header is required in practice.
+- Region auto-detection from the key shape (currently
+  user-picked; v0.2.0 candidate).
+
+Live verification will use a real Subscription Key supplied by
+the project owner. Captured redacted responses become follow-up
+discussion records.
 
 ## Out of scope
 

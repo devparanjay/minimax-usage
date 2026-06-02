@@ -2,7 +2,7 @@
 
 **Version:** v0.1.0
 **Branch:** `v0.1.0` (cut off `main` at start of v0.1.0)
-**Status:** in flight — discovery phase
+**Status:** in flight — architecture phase
 **Last updated:** 2026-06-02
 **Owner:** orchestrator (FooFoo)
 **Goal:** end-to-end MVP that delivers the user path described in
@@ -42,7 +42,7 @@ Marketplace.
 
 | #  | Phase                | Owner                | Status      | Plan                                                  |
 |----|----------------------|----------------------|-------------|-------------------------------------------------------|
-| 01 | Discovery            | solution-architect + business-analyst | not started | `.kitchen/roadmaps/v0.1.0/phases/01-discovery.md` |
+| 01 | Discovery            | solution-architect + business-analyst | complete | `.kitchen/roadmaps/v0.1.0/phases/01-discovery.md` |
 | 02 | Architecture         | technical-architect  | not started | `.kitchen/roadmaps/v0.1.0/phases/02-architecture.md` |
 | 03 | Design               | ux-designer + ui-designer + ux-writer | not started | `.kitchen/roadmaps/v0.1.0/phases/03-design.md` |
 | 04 | Build                | fullstack-engineer   | not started | `.kitchen/roadmaps/v0.1.0/phases/04-build.md` |

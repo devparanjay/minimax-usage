@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MiniMax Usage</title>
+    <link rel="stylesheet" href="modal.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="header__title" id="title">MiniMax Usage</h1>
+    </header>
+
+    <main class="content">
+      <section id="loading-state" class="state state--loading" hidden>
+        <div class="state__icon codicon codicon-loading~spin"></div>
+        <div class="state__body">Fetching usage…</div>
+      </section>
+
+      <section id="data" class="blocks"></section>
+
+      <section id="credits-block" class="blocks" hidden></section>
+
+      <section id="error" class="error-container" hidden></section>
+    </main>
+
+    <footer class="footer">
+      <span class="footer__timestamp" id="last-updated">Last updated never</span>
+      <button class="footer__link" id="open-settings-link">Open Settings</button>
+    </footer>
+
+    <script src="modal.js"></script>
+  </body>
+</html>

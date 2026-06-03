@@ -3,6 +3,7 @@
   "displayName": "MiniMax Usage",
   "description": "Show near-realtime MiniMax Token Plan and Credits usage in your VSCode status bar. One click for the full picture.",
   "version": "0.1.0",
+  "icon": "images/logo-v0.1.0.png",
   "publisher": "devparanjay",
   "engines": {
     "vscode": "^1.85.0"

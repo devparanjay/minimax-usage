@@ -99,7 +99,7 @@ export function redact(value: unknown): unknown {
 }
 
 export function formatError(event: unknown, level: LogLevel, context?: LogContext): string {
-  const baseContext: LogContext = context ? { ...redact(context) as LogContext } : {};
+  const baseContext: LogContext = context ? { ...(redact(context) as LogContext) } : {};
   if (level === "error" && isUsageError(event)) {
     baseContext["kind"] = event.kind;
     if (event.statusCode !== undefined) {
@@ -135,13 +135,13 @@ export function createLogger(initialChannel: vscode.OutputChannel): Logger {
   let channel: vscode.OutputChannel = initialChannel;
   return {
     info(message: string, context?: LogContext): void {
-      channel.appendLine(`[info] ${message} ${formatContext(context)}`);
+      channel.appendLine(`[info] ${message} ${formatContext(context, "info")}`);
     },
     warn(message: string, context?: LogContext): void {
-      channel.appendLine(`[warn] ${message} ${formatContext(context)}`);
+      channel.appendLine(`[warn] ${message} ${formatContext(context, "warn")}`);
     },
     error(message: string, context?: LogContext): void {
-      channel.appendLine(`[error] ${message} ${formatContext(context)}`);
+      channel.appendLine(`[error] ${message} ${formatContext(context, "error")}`);
     },
     setChannel(c: vscode.OutputChannel): void {
       channel = c;
@@ -152,11 +152,11 @@ export function createLogger(initialChannel: vscode.OutputChannel): Logger {
   };
 }
 
-function formatContext(context?: LogContext): string {
+function formatContext(context: LogContext | undefined, level: LogLevel): string {
   if (!context) {
     return "";
   }
-  return formatError(context, "info", context);
+  return formatError(context, level, context);
 }
 
 export function noopLogger(): Logger {

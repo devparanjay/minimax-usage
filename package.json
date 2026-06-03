@@ -3,7 +3,7 @@
   "displayName": "MiniMax Usage",
   "description": "Show near-realtime MiniMax plan usage inside VSCode.",
   "version": "0.1.0",
-  "publisher": "<PUBLISHER_PLACEHOLDER>",
+  "publisher": "devparanjay",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -19,7 +19,7 @@
   "main": "./dist/extension.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/<PUBLISHER_PLACEHOLDER>/minimax-usage"
+    "url": "https://github.com/devparanjay/minimax-usage"
   },
   "activationEvents": [
     "*"

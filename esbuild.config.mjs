@@ -1,6 +1,7 @@
 /* eslint-env node */
 import { build, context } from "esbuild";
 import { cp, mkdir, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -56,6 +57,22 @@ async function copyStaticAssets() {
   await cp("src/ui/webview/template/modal.css", "dist/webview/modal.css");
 }
 
+function assertWebviewAssets() {
+  const expected = [
+    "dist/webview/modal.html",
+    "dist/webview/modal.css",
+    "dist/webview/modal.js"
+  ];
+  for (const p of expected) {
+    if (!existsSync(p)) {
+      throw new Error(
+        `build artefact missing: ${p}. ` +
+          "copyStaticAssets() must copy or produce this file."
+      );
+    }
+  }
+}
+
 const isWatch = process.argv.includes("--watch");
 
 if (isWatch) {
@@ -63,11 +80,13 @@ if (isWatch) {
   const ctxWebview = await context(webviewEntry);
   await Promise.all([ctxHost.watch(), ctxWebview.watch()]);
   await copyStaticAssets();
+  assertWebviewAssets();
   console.warn("esbuild: watching for changes...");
 } else {
   await build(hostEntry);
   await build(webviewEntry);
   await copyStaticAssets();
+  assertWebviewAssets();
 }
 
 if (isProd) {

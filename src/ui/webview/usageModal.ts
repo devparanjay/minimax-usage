@@ -8,21 +8,6 @@ import type { PollingController } from "../../polling/controller";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-function readBundledHtml(): string {
-  const candidates = [
-    join("dist", "webview", "modal.html"),
-    join("src", "ui", "webview", "template", "modal.html")
-  ];
-  for (const c of candidates) {
-    try {
-      return readFileSync(c, "utf8");
-    } catch {
-      continue;
-    }
-  }
-  return "<!doctype html><html><body>MiniMax Usage modal template not found.</body></html>";
-}
-
 export interface UsageModalOptions {
   context: vscode.ExtensionContext;
   store: StateStore;
@@ -53,7 +38,7 @@ export class UsageModal {
     const panel = vscode.window.createWebviewPanel(
       "minimaxUsage.modal",
       "MiniMax Usage",
-      vscode.ViewColumn.Beside,
+      vscode.ViewColumn.Active,
       {
         enableScripts: true,
         localResourceRoots: [vscode.Uri.file(distDir)],
@@ -162,8 +147,18 @@ export class UsageModal {
     return join(this.opts.context.extensionPath, "dist", "webview");
   }
 
+  private readBundledHtml(): string {
+    const htmlPath = join(this.opts.context.extensionPath, "dist", "webview", "modal.html");
+    try {
+      return readFileSync(htmlPath, "utf8");
+    } catch {
+      this.opts.logger.error("usage.modal.template.missing", { htmlPath });
+      return "<!doctype html><html><body>MiniMax Usage modal template not found.</body></html>";
+    }
+  }
+
   private buildHtml(webview: vscode.Webview): string {
-    const html = readBundledHtml();
+    const html = this.readBundledHtml();
     const cssUri = webview.asWebviewUri(vscode.Uri.file(join(this.distDir(), "modal.css")));
     const jsUri = webview.asWebviewUri(vscode.Uri.file(join(this.distDir(), "modal.js")));
     return html

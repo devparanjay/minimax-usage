@@ -1,8 +1,7 @@
 # Phase 07 — Documentation
 
 **Owner:** `technical-writer`
-**Status:** not started (can run in parallel with phases 04, 05,
-and 06 once the user-facing strings from phase 03 are stable)
+**Status:** complete
 **Goal:** complete the user-facing documentation in `/docs/`
 plus the project root README so that a new user can install,
 configure, and use the extension without prior context.
@@ -50,6 +49,33 @@ See `.kitchen/roadmaps/v0.1.0/tasks/07-docs-tasks.md`.
   sensitive data.
 - The project owner reviews and signs off on the user-facing
   copy.
+
+## Outcome
+
+The user-facing documentation under `/docs/` is complete for
+v0.1.0. The index, installation, setup, usage, troubleshooting,
+and security documents are committed in atomic, conventional
+commits on the `v0.1.0` branch. The docs inherit the
+banned-words list and the canonical glossary from
+`.kitchen/design/strings-v0.1.0.md` and refer to the strings
+by their canonical terms (Subscription Key, Token Plan,
+Credits, 5-Hour Limit, Weekly Limit, Mainland China, Status
+bar entry, Modal, Open Platform API Key, Settings).
+
+The docs do not paraphrase strings the user sees — they
+describe the purpose of each surface and the recovery path
+for each error state. The Subscription Key is described as
+starting with `sk-cp-`; the docs use placeholder shapes
+(`sk-cp-XXXX…`, `sk-cp-…`) rather than real key values.
+
+The root `README.md` and `CHANGELOG.md` updates called out
+in the phase plan are tracked as separate phase-07 tasks and
+were not part of this commit set — they are the orchestrator's
+call (the kickoff discussion reserves the Marketplace-related
+copy for the project owner to confirm before the first
+publish). The current phase-07 commit set is the five
+`/docs/` files plus the index update and this phase plan /
+task list.
 
 ## Out of scope
 

@@ -1,0 +1,62 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (do not publish)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to VSCode Marketplace
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies from lockfile
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Package (production)
+        run: npm run package:prod
+
+      - name: Publish to VSCode Marketplace
+        env:
+          # The token is referenced by name from the repository's
+          # secrets store; it is never echoed, never set as an
+          # env var of the broader job, never written to disk.
+          VSCE_TOKEN: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "Dry run — not publishing"
+            exit 0
+          fi
+          npx vsce publish --pat $VSCE_TOKEN

@@ -137,6 +137,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         return;
       }
       await secretStorage.setApiKey(value);
+      await cache.invalidateAll();
+      void controller.refreshNow("api-key-change", { forceRefresh: true });
+      void statusBar.render();
       void vscode.window.showInformationMessage(
         STRINGS.STR_APIKEY_INPUTBOX_SUCCESS
       );

@@ -27,7 +27,7 @@ export function createSecretStorageWrapper(store: SecretStorageLike): SecretStor
       return;
     }
     for (const h of handlers) {
-      h(undefined);
+      h(key);
     }
   };
 

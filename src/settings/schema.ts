@@ -6,21 +6,24 @@
 // generate `package.json`; any drift between the schema output and
 // the manifest is a bug.
 
-import type { Region, DisplayMode } from "../types/settings";
+import type { Region, DisplayMode, ModalLocation } from "../types/settings";
 import { STRINGS } from "../strings";
 
 export interface ConfigurationSchema {
   [key: string]: unknown;
   "minimaxUsage.region": Region;
   "minimaxUsage.displayMode": DisplayMode;
+  "minimaxUsage.modalLocation": ModalLocation;
   "minimaxUsage.subscriptionKey": null;
 }
 
 export const REGION_KEY = "minimaxUsage.region" as const;
 export const DISPLAY_MODE_KEY = "minimaxUsage.displayMode" as const;
+export const MODAL_LOCATION_KEY = "minimaxUsage.modalLocation" as const;
 
 export const DEFAULT_REGION: Region = "overseas";
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "tokenPlan";
+export const DEFAULT_MODAL_LOCATION: ModalLocation = "active";
 
 export function regionMarkdownDescription(): string {
   return STRINGS.STR_SETTINGS_REGION_MD_DESC;
@@ -42,5 +45,16 @@ export function displayModeEnumDescriptions(): [string, string, string] {
     STRINGS.STR_SETTINGS_DISPLAYMODE_ENUM_0,
     STRINGS.STR_SETTINGS_DISPLAYMODE_ENUM_1,
     STRINGS.STR_SETTINGS_DISPLAYMODE_ENUM_2
+  ];
+}
+
+export function modalLocationMarkdownDescription(): string {
+  return STRINGS.STR_SETTINGS_MODALLOCATION_MD_DESC;
+}
+
+export function modalLocationEnumDescriptions(): [string, string] {
+  return [
+    STRINGS.STR_SETTINGS_MODALLOCATION_ENUM_0,
+    STRINGS.STR_SETTINGS_MODALLOCATION_ENUM_1
   ];
 }

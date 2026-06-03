@@ -75,11 +75,44 @@
             "Both — Token Plan and Credits side by side"
           ]
         },
+        "minimaxUsage.modalLocation": {
+          "type": "string",
+          "enum": [
+            "active",
+            "auxiliary"
+          ],
+          "default": "active",
+          "markdownDescription": "Where the usage panel opens when you click the status bar. **Active editor** opens a panel in the current editor column (the default). **Auxiliary bar** opens a view in the right sidebar.",
+          "enumDescriptions": [
+            "Active editor — opens a panel in the current column (default)",
+            "Auxiliary bar — opens a view in the right sidebar"
+          ]
+        },
         "minimaxUsage.subscriptionKey": {
           "type": "null",
           "markdownDescription": "Click [Set your API key](command:minimaxUsage.setApiKey) to set or update your Subscription Key."
         }
       }
+    },
+    "viewsContainers": {
+      "secondarySideBar": [
+        {
+          "id": "minimaxUsage",
+          "title": "MiniMax Usage",
+          "icon": "images/logo-v0.1.0.png"
+        }
+      ]
+    },
+    "views": {
+      "minimaxUsage": [
+        {
+          "id": "minimaxUsage.usage",
+          "name": "Usage",
+          "type": "webview",
+          "contextualTitle": "MiniMax Usage",
+          "visibility": "visible"
+        }
+      ]
     }
   },
   "scripts": {

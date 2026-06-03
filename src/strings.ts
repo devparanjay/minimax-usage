@@ -37,6 +37,14 @@ export const STRINGS = {
   STR_SETTINGS_DISPLAYMODE_DISABLED_HINT:
     "Credits endpoint unavailable — coming in a future version",
 
+  // 3.3 minimaxUsage.modalLocation
+  STR_SETTINGS_MODALLOCATION_MD_DESC:
+    "Where the usage panel opens when you click the status bar. **Active editor** opens a panel in the current editor column (the default). **Auxiliary bar** opens a view in the right sidebar.",
+  STR_SETTINGS_MODALLOCATION_ENUM_0:
+    "Active editor — opens a panel in the current column (default)",
+  STR_SETTINGS_MODALLOCATION_ENUM_1:
+    "Auxiliary bar — opens a view in the right sidebar",
+
   // 3.3 Custom "Subscription Key" row
   STR_SETTINGS_APIKEY_LABEL: "Subscription Key",
   STR_SETTINGS_APIKEY_DESC: "Set or update your MiniMax Subscription Key",

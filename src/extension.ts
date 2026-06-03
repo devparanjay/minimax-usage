@@ -7,6 +7,7 @@ import { createLogger, type Logger } from "./util/logger";
 import { PollingController } from "./polling/controller";
 import { StatusBarController } from "./ui/statusBar";
 import { UsageModal } from "./ui/webview/usageModal";
+import { AuxiliaryUsageViewProvider, AUXILIARY_VIEW_ID } from "./ui/webview/auxiliaryUsageView";
 import { postFirstRun } from "./ui/notification";
 import { createCacheStore } from "./api/cache";
 import { STRINGS } from "./strings";
@@ -17,6 +18,7 @@ interface ExtensionRefs {
   controller: PollingController;
   statusBar: StatusBarController;
   modal: UsageModal;
+  auxiliary: AuxiliaryUsageViewProvider;
   cache: ReturnType<typeof createCacheStore>;
   configListener: vscode.Disposable;
   secretListener: vscode.Disposable;
@@ -53,16 +55,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     getApiKey: () => secretStorage.getApiKey()
   });
 
+  const auxiliary = new AuxiliaryUsageViewProvider({
+    context,
+    store,
+    controller: undefined as unknown as PollingController,
+    logger,
+    getApiKey: () => secretStorage.getApiKey()
+  });
+
+  const openUsage: () => void = () => {
+    const location = settings.readModalLocation();
+    if (location === "auxiliary") {
+      void vscode.commands.executeCommand(`workbench.view.${AUXILIARY_VIEW_ID}`);
+    } else {
+      void modal.openOrFocus();
+    }
+  };
+
   const statusBar = new StatusBarController(statusBarItem, {
     store,
     controller: undefined as unknown as PollingController,
     logger,
-    onClick: () => {
-      void modal.openOrFocus();
-    },
-    openModal: () => {
-      void modal.openOrFocus();
-    }
+    onClick: openUsage,
+    openModal: openUsage
   });
 
   const controller = new PollingController({
@@ -76,16 +91,27 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     fireAfterRefresh: (snapshot) => {
       void statusBar.render();
       void modal.postSnapshot(snapshot);
+      auxiliary.postSnapshot(snapshot);
     }
   });
 
   modal.attachController(controller);
   statusBar.attachController(controller);
+  auxiliary.attachController(controller);
   refs.controller = controller;
   refs.statusBar = statusBar;
   refs.modal = modal;
+  refs.auxiliary = auxiliary;
   refs.cache = cache;
   refs.logger = logger;
+
+  const auxiliaryProviderReg = vscode.window.registerWebviewViewProvider(
+    AUXILIARY_VIEW_ID,
+    auxiliary,
+    { webviewOptions: { retainContextWhenHidden: true } }
+  );
+  context.subscriptions.push(auxiliaryProviderReg);
+  context.subscriptions.push(auxiliary);
 
   refs.configListener = settings.onDidChangeSettings(async (change) => {
     const region = settings.readRegion();
@@ -98,6 +124,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     } else if (change.displayMode) {
       void statusBar.render();
       void modal.postSnapshot(store.read());
+      auxiliary.postSnapshot(store.read());
     }
   });
   context.subscriptions.push(refs.configListener);
@@ -166,7 +193,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await vscode.commands.executeCommand("minimaxUsage.setApiKey");
         return;
       }
-      await modal.openOrFocus();
+      openUsage();
     }
   );
   context.subscriptions.push(showUsageCmd);
@@ -176,6 +203,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       controller.dispose();
       statusBar.dispose();
       modal.dispose();
+      auxiliary.dispose();
     }
   });
 

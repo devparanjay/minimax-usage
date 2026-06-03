@@ -99,11 +99,11 @@
     "@typescript-eslint/parser": "^7.3.1",
     "@vitest/coverage-v8": "^1.4.0",
     "cross-env": "^7.0.3",
-    "eslint": "^8.57.0",
     "esbuild": "^0.20.2",
+    "eslint": "^8.57.0",
+    "happy-dom": "^14.12.3",
     "typescript": "^5.4.3",
     "vitest": "^1.4.0",
     "vsce": "^2.15.0"
-  },
-  "dependencies": {}
+  }
 }

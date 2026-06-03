@@ -1,7 +1,7 @@
 import type * as vscode from "vscode";
 import type { PersistedSnapshot } from "./types";
 import { EMPTY_PERSISTED } from "./types";
-import type { UsageResponse } from "../types/contract";
+import type { UsageResponse, CreditBalanceResponse } from "../types/contract";
 import type { ErrorClass } from "../types/contract";
 import type { Region, DisplayMode } from "../types/settings";
 
@@ -11,6 +11,7 @@ const KEY_LAST_ERROR = "minimaxUsage.lastError";
 const KEY_REGION = "minimaxUsage.region";
 const KEY_DISPLAY_MODE = "minimaxUsage.displayMode";
 const KEY_CREDITS_AVAILABLE = "minimaxUsage.creditsAvailable";
+const KEY_CREDIT_BALANCE = "minimaxUsage.creditBalance";
 
 export interface StateStore {
   read(): PersistedSnapshot;
@@ -22,6 +23,7 @@ export interface StateStore {
   setRegion(region: Region): Promise<void>;
   setDisplayMode(displayMode: DisplayMode): Promise<void>;
   setCreditsAvailable(available: boolean): Promise<void>;
+  setCreditBalance(balance: CreditBalanceResponse | null): Promise<void>;
 }
 
 interface PersistedError {
@@ -45,6 +47,13 @@ function isUsageResponseLike(v: unknown): v is UsageResponse {
   return Array.isArray((v as Record<string, unknown>)["model_remains"]);
 }
 
+function isCreditBalanceResponseLike(v: unknown): v is CreditBalanceResponse {
+  if (!v || typeof v !== "object") {
+    return false;
+  }
+  return true;
+}
+
 function isRegionLike(v: unknown): v is Region {
   return v === "overseas" || v === "cn";
 }
@@ -65,6 +74,7 @@ export function createStateStore(memento: vscode.Memento): StateStore {
     await updateKey(memento, KEY_REGION, snapshot.region);
     await updateKey(memento, KEY_DISPLAY_MODE, snapshot.displayMode);
     await updateKey(memento, KEY_CREDITS_AVAILABLE, snapshot.creditsAvailable);
+    await updateKey(memento, KEY_CREDIT_BALANCE, snapshot.creditBalance);
   }
 
   function read(): PersistedSnapshot {
@@ -74,6 +84,7 @@ export function createStateStore(memento: vscode.Memento): StateStore {
     const regionRaw = memento.get<unknown>(KEY_REGION);
     const displayModeRaw = memento.get<unknown>(KEY_DISPLAY_MODE);
     const creditsAvailableRaw = memento.get<unknown>(KEY_CREDITS_AVAILABLE);
+    const creditBalanceRaw = memento.get<unknown>(KEY_CREDIT_BALANCE);
 
     const lastSuccessAt =
       typeof lastSuccessAtRaw === "number" && Number.isFinite(lastSuccessAtRaw)
@@ -91,7 +102,10 @@ export function createStateStore(memento: vscode.Memento): StateStore {
       creditsAvailable:
         typeof creditsAvailableRaw === "boolean"
           ? creditsAvailableRaw
-          : EMPTY_PERSISTED.creditsAvailable
+          : EMPTY_PERSISTED.creditsAvailable,
+      creditBalance: isCreditBalanceResponseLike(creditBalanceRaw)
+        ? (creditBalanceRaw as CreditBalanceResponse)
+        : EMPTY_PERSISTED.creditBalance
     };
   }
 
@@ -126,6 +140,9 @@ export function createStateStore(memento: vscode.Memento): StateStore {
     },
     async setCreditsAvailable(available): Promise<void> {
       await updateKey(memento, KEY_CREDITS_AVAILABLE, available);
+    },
+    async setCreditBalance(balance): Promise<void> {
+      await updateKey(memento, KEY_CREDIT_BALANCE, balance);
     }
   };
 }

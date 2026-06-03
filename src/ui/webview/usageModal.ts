@@ -95,7 +95,7 @@ export class UsageModal {
       creditsAvailable: snapshot.creditsAvailable,
       lastSuccessAt: snapshot.lastSuccessAt ?? undefined,
       usage: snapshot.lastKnownGood ?? undefined,
-      creditBalance: undefined
+      creditBalance: snapshot.creditBalance ?? undefined
     };
     if (snapshot.lastError) {
       modalSnapshot.lastError = {

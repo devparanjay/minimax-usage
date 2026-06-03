@@ -1,6 +1,7 @@
 import type { UsageResponse } from "../types/contract";
 import type { ErrorClass } from "../types/contract";
 import type { Region, DisplayMode } from "../types/settings";
+import type { CreditBalanceResponse } from "../types/contract";
 
 export interface PersistedSnapshot {
   lastKnownGood: UsageResponse | null;
@@ -9,6 +10,7 @@ export interface PersistedSnapshot {
   region: Region;
   displayMode: DisplayMode;
   creditsAvailable: boolean;
+  creditBalance: CreditBalanceResponse | null;
 }
 
 export interface InFlightState {
@@ -23,5 +25,6 @@ export const EMPTY_PERSISTED: PersistedSnapshot = {
   lastError: null,
   region: "overseas",
   displayMode: "tokenPlan",
-  creditsAvailable: true
+  creditsAvailable: true,
+  creditBalance: null
 };

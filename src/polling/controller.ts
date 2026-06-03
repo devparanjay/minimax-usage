@@ -6,6 +6,7 @@ import type { Logger } from "../util/logger";
 import { createRateLimiter, RATE_LIMIT_WINDOW_MS } from "./rateLimit";
 import { createAbortController, type AbortHandle } from "../util/abort";
 import { coalesce } from "../util/debounce";
+import { isUsageErrorKind } from "../api/client";
 
 export type RefreshReason =
   | "timer"
@@ -90,7 +91,7 @@ export class PollingController {
     if (this.stopped) {
       return;
     }
-    if (this.rateLimiter.isSuppressed(Date.now()) && reason !== "api-key-change" && reason !== "region-change") {
+    if (this.rateLimiter.isSuppressed(Date.now())) {
       return;
     }
     if (this.startStopper) {
@@ -135,12 +136,15 @@ export class PollingController {
     const signal = abort.signal;
     const forceRefresh = opts?.forceRefresh === true;
 
+    const snapshot = this.opts.store.read();
+    const region = snapshot.region;
+    const displayMode = snapshot.displayMode;
+
     try {
       const apiKey = await this.opts.getApiKey();
       if (!apiKey) {
         return;
       }
-      const region = this.opts.settings.readRegion();
       const result = await this.opts.client.getUsage({
         apiKey,
         region,
@@ -159,6 +163,39 @@ export class PollingController {
         at,
         modelCount: result.model_remains.length
       });
+
+      const wantsCredits = displayMode === "credits" || displayMode === "both";
+      if (wantsCredits) {
+        try {
+          const creditResult = await this.opts.client.getCreditBalance({
+            apiKey,
+            region,
+            signal,
+            forceRefresh
+          });
+          if (!signal.aborted) {
+            await this.opts.store.setCreditsAvailable(true);
+            await this.opts.store.setCreditBalance(creditResult);
+            this.opts.logger.info("credits.fetched", {
+              reason,
+              region,
+              at: Date.now()
+            });
+          }
+        } catch (creditsErr) {
+          if (!signal.aborted) {
+            await this.opts.store.setCreditsAvailable(false);
+            this.opts.logger.warn("credits.unavailable", {
+              reason,
+              region,
+              kind: isUsageErrorKind(creditsErr) ? creditsErr.kind : "unknown"
+            });
+          }
+        }
+      } else {
+        await this.opts.store.setCreditsAvailable(false);
+      }
+
       if (this.opts.fireAfterRefresh) {
         this.opts.fireAfterRefresh(this.opts.store.read(), reason);
       }
@@ -166,8 +203,8 @@ export class PollingController {
       if (signal.aborted) {
         return;
       }
-      const usageErr = err as UsageError;
-      if (usageErr && typeof usageErr === "object" && "kind" in usageErr) {
+      if (isUsageErrorKind(err)) {
+        const usageErr: UsageError = err;
         const kind = usageErr.kind;
         if (kind === "rate_limited") {
           this.rateLimiter.suppress(RATE_LIMIT_WINDOW_MS, Date.now());

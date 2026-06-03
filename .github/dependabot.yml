@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    target-branch: "v0.1.0"
+    versioning-strategy: "increase"
+    groups:
+      production-dependencies:
+        applies-to: "version-updates"
+      development-dependencies:
+        applies-to: "version-updates"
+        dependency-type: "development"
+    ignore: []

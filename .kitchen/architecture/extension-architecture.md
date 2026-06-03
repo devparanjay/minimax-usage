@@ -237,25 +237,32 @@ VSCode extensions declare the events that trigger them in
 
 | Event | Why | What it loads |
 | --- | --- | --- |
-| `*` | Catch-all. We want to be alive as soon as the user starts VSCode, so the status bar appears and the first-run prompt can fire. | Full extension. |
+| `onStartupFinished` | Status bar appears once VSCode is ready (a few seconds after the window opens). Avoids blocking the startup and avoids the `vsce` warning that `*` triggers. | Full extension. |
+| `onCommand:minimaxUsage.setApiKey` | The user can invoke the key-entry flow from the command palette even before startup finishes. | Full extension. |
+| `onCommand:minimaxUsage.showUsage` | The user can open the modal from the command palette even before startup finishes. | Full extension. |
+| `onCommand:minimaxUsage.openSettings` | The first-run notification's "Open Settings" button works as a command invocation; if the user clicks it before startup finishes, we still need to be live. | Full extension. |
 
-The `*` event is appropriate for an extension that always shows a
-status-bar entry — it would be confusing for the status bar to
-appear only after the user does something specific. (Alternatives
-considered: `onLanguage:...` — we do not hook a language. `onView:...` —
-we do not own a view. `onStartupFinished` — too lazy: the user
-could click our status bar in the first second and we'd not be
-loaded.)
+The activation events are `onStartupFinished` plus the three
+user-invoked commands. `*` is inappropriate because VSCode emits
+a build-time warning ("Using '*' activation is usually a bad idea
+as it impacts performance") and the cost of activation is
+unnecessary for an extension that the user can always invoke
+through the command palette. The status bar appears on
+`onStartupFinished` (a few seconds after VSCode opens) rather
+than blocking the startup. (Previous rationale — "it would be
+confusing for the status bar to appear only after the user does
+something specific" — was correct in spirit, but `onStartupFinished`
+is a few seconds, not a user action, and the
+`onCommand:minimaxUsage.showUsage` event covers the
+status-bar-click edge case.)
 
-The extension is therefore not "lazy" in the strict sense, but
-activation is cheap: it is one extension-host script run per VSCode
-session, holding a `StatusBarItem`, a `PollingController`, and a
-single `SecretStorage` listener. There is no in-flight request at
-activation time.
-
-`activationEvents` will list only `*` in `package.json`. We will
-**not** add a `onCommand:minimaxUsage.openSettings` event for the
-"first-run" path — see § 4.
+The extension is therefore still "eager" in the sense that the
+status bar appears automatically, but activation is cheap: it
+is one extension-host script run per VSCode session, holding a
+`StatusBarItem`, a `PollingController`, and a single
+`SecretStorage` listener. There is no in-flight request at
+activation time. The `extension.ts` `activate(context)` flow is
+unchanged — it still runs once on any of these events.
 
 ## 4. First-run flow
 

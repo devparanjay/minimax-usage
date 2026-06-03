@@ -22,7 +22,10 @@
     "url": "https://github.com/devparanjay/minimax-usage"
   },
   "activationEvents": [
-    "*"
+    "onStartupFinished",
+    "onCommand:minimaxUsage.setApiKey",
+    "onCommand:minimaxUsage.showUsage",
+    "onCommand:minimaxUsage.openSettings"
   ],
   "contributes": {
     "commands": [

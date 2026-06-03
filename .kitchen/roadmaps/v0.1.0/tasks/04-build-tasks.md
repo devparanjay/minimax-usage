@@ -1,7 +1,7 @@
 # Phase 04 — Build Tasks
 
 **Phase owner:** `fullstack-engineer`
-**Status:** complete
+**Status:** complete (with code-reviewer fix round)
 
 ## Tasks
 
@@ -33,8 +33,8 @@
       5-hour at 0%, region mismatch) in the modal state
       machine, per `data-flow.md` § 4 + § 5.
 - [x] Add unit tests for the API client and the state
-      transitions. (95 tests across 5 files: classify,
-      cache, retry, logger, rateLimit.)
+      transitions. (140 tests across 7 files: classify,
+      cache, retry, logger, rateLimit, client, strings.)
 - [x] Configure lint, typecheck (strict), and test scripts
       in `package.json`. Plus the `package:prod` script with
       the `cross-env NODE_ENV=production npm run build`
@@ -48,9 +48,50 @@
       committed. (The only `sk-cp-…` in the source is in
       `src/util/logger.ts` tests as the documented shape
       match for redaction rule R2 — no real key.)
-- [ ] Open a PR against `v0.1.0`, get a `code-reviewer`
-      review, address feedback, and merge. (Pending
-      project-owner review.)
+- [x] Code-reviewer fix round (post-phase-04 review).
+- [x] **Fix 1 — Strings discipline:** introduce
+      `src/strings.ts` and replace all 70+ inlined
+      user-facing strings with `STR_*` imports. (Atomic
+      commit `0e86046`.)
+- [x] **Fix 2 — StateStore mirror contract:** write
+      `region` and `displayMode` from `onDidChangeSettings`.
+      `displayMode: 'both'` now surfaces the Credits block;
+      `displayMode: 'credits'` shows a credits-only modal
+      with title `STR_MODAL_TITLE_CREDITS`. (Atomic commit
+      `8f239fe`.)
+- [x] **Fix 3 — Credits endpoint wiring:** invoke
+      `getCreditBalance` from `PollingController` when
+      `displayMode` is `credits` or `both`. Set
+      `creditsAvailable` on the store. (Carried in `8f239fe`
+      along with the state-mirror changes that share the
+      same `controller.ts` and `usageModal.ts` files.)
+- [x] **Fix 4 — R5 redaction enforcement:** thread the
+      logger level through `formatContext` and
+      `formatError` so the production call path applies R5
+      when `level === 'error'` and the event is a
+      `UsageError`. (Atomic commit `c0c48ae`.)
+- [x] **Fix 5 — `displayMode: 'credits'` rendering:** the
+      modal shows only the Credits block in `credits` mode
+      (and the title is `STR_MODAL_TITLE_CREDITS`). (Carried
+      in `0e86046` along with the strings refactor that
+      touched the same modal.ts file.)
+- [x] **Fix 6 — `test/api/client.test.ts`:** 35 tests
+      covering auth header, cache, retry, error classes,
+      `quota_exhausted` special case, `empty` case, and
+      AbortSignal. (Atomic commit `6d353bc`.)
+- [x] **Fix 7 — Tighten `isUsageResponseLike`:** verify the
+      first `model_remains` entry has the required fields.
+      Malformed responses land in the `empty` state, not
+      `NaN%` in the bar. (Atomic commit `6d353bc` along
+      with the client tests.)
+- [x] **NB-1 / NB-2 — Formatter de-duplication:** the
+      `Resets in` and `Last updated {N} {unit} ago`
+      formatters are now in `src/util/format.ts` as the
+      single source. (Atomic commit `1555f6d`.)
+- [ ] Open a PR against `v0.1.0` for the code-reviewer
+      fix round, get a re-review (or self-verify), then
+      hold for the project-owner go-ahead before merging to
+      `main`. (Pending re-review.)
 
 ## Blockers
 

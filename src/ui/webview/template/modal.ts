@@ -359,5 +359,16 @@ document.addEventListener("click", (event: MouseEvent) => {
   }
 });
 
-applyStaticStrings();
-vscodeApi.postMessage({ kind: "ready" });
+function applyFallbackTitle(): void {
+  const titleEl = document.getElementById("title");
+  if (titleEl) {
+    titleEl.textContent = "MiniMax Usage";
+  }
+}
+
+try {
+  applyStaticStrings();
+  vscodeApi.postMessage({ kind: "ready" });
+} catch {
+  applyFallbackTitle();
+}

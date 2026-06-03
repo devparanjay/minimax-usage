@@ -7,6 +7,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: [
+        "src/api/client.ts",
         "src/api/classify.ts",
         "src/api/cache.ts",
         "src/api/retry.ts",

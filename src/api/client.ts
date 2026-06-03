@@ -1,6 +1,7 @@
 import type {
   UsageResponse,
   CreditBalanceResponse,
+  ModelRemain,
   Region,
   ErrorClass,
   BaseResp
@@ -107,12 +108,51 @@ function readBaseResp(value: unknown): BaseResp | undefined {
   return { status_code: sc, status_msg: sm };
 }
 
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v);
+}
+
+function isModelRemainRenderable(entry: unknown): entry is ModelRemain {
+  if (!entry || typeof entry !== "object") {
+    return false;
+  }
+  const o = entry as Record<string, unknown>;
+  if (typeof o["model_name"] !== "string") {
+    return false;
+  }
+  if (!isFiniteNumber(o["start_time"])) {
+    return false;
+  }
+  if (!isFiniteNumber(o["end_time"])) {
+    return false;
+  }
+  if (!isFiniteNumber(o["current_interval_remaining_percent"])) {
+    return false;
+  }
+  if (!isFiniteNumber(o["remains_time"])) {
+    return false;
+  }
+  if (!isFiniteNumber(o["current_weekly_remaining_percent"])) {
+    return false;
+  }
+  if (!isFiniteNumber(o["weekly_remains_time"])) {
+    return false;
+  }
+  return true;
+}
+
 function isUsageResponseLike(v: unknown): v is UsageResponse {
   const r = asRecord(v);
   if (!r) {
     return false;
   }
-  return Array.isArray(r["model_remains"]);
+  if (!Array.isArray(r["model_remains"])) {
+    return false;
+  }
+  if (r["model_remains"].length > 0 && !isModelRemainRenderable(r["model_remains"][0])) {
+    return false;
+  }
+  return true;
 }
 
 function isCreditBalanceResponseLike(v: unknown): v is CreditBalanceResponse {
@@ -169,34 +209,8 @@ export class UsageClient {
         this.cache.set(cacheKey, parsed, DEFAULT_TTL_MS);
         return parsed;
       }
-      if (baseResp && baseResp.status_code !== 0) {
-        const kind = classifyError(baseResp.status_code);
-        if (kind === "quota_exhausted") {
-          this.cache.set(cacheKey, parsed, DEFAULT_TTL_MS);
-          return parsed;
-        }
-        throw new UsageError({
-          kind,
-          message: baseResp.status_msg,
-          statusCode: baseResp.status_code,
-          statusMsg: baseResp.status_msg,
-          httpStatus: attempt.raw.status,
-          cause: parsed
-        });
-      }
       this.cache.set(cacheKey, parsed, DEFAULT_TTL_MS);
       return parsed;
-    }
-
-    if (attempt.networkError) {
-      throw new UsageError({
-        kind: "transient",
-        message:
-          attempt.networkError instanceof Error
-            ? attempt.networkError.message
-            : String(attempt.networkError),
-        cause: attempt.networkError
-      });
     }
 
     const raw = attempt.raw as RawResponse;
@@ -245,17 +259,6 @@ export class UsageClient {
       }
       this.cache.set(cacheKey, parsed, DEFAULT_TTL_MS);
       return parsed;
-    }
-
-    if (attempt.networkError) {
-      throw new UsageError({
-        kind: "transient",
-        message:
-          attempt.networkError instanceof Error
-            ? attempt.networkError.message
-            : String(attempt.networkError),
-        cause: attempt.networkError
-      });
     }
 
     const raw = attempt.raw as RawResponse;
@@ -358,9 +361,6 @@ export class UsageClient {
       }
       if (err instanceof UsageError) {
         if (lastResult && err.kind === "transient") {
-          if (lastResult.networkError) {
-            return { networkError: lastResult.networkError };
-          }
           return { raw: lastResult.raw };
         }
         throw err;
@@ -383,11 +383,7 @@ export class UsageClient {
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     const onAbort = (): void => controller.abort();
     if (signal) {
-      if (signal.aborted) {
-        controller.abort();
-      } else {
-        signal.addEventListener("abort", onAbort, { once: true });
-      }
+      signal.addEventListener("abort", onAbort, { once: true });
     }
     try {
       const res = await this.fetchImpl(url, {

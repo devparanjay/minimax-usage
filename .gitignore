@@ -24,7 +24,7 @@ pnpm-debug.log*
 !.env.example
 *.pem
 *.key
-secrets/
+/secrets/      # a top-level secrets/ directory (env files, key dumps)
 config/local.*
 .vscode/settings.json.local
 

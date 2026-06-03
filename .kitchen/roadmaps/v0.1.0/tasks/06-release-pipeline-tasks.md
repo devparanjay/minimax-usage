@@ -1,28 +1,28 @@
 # Phase 06 — Release Pipeline Tasks
 
 **Phase owner:** `devops-engineer`
-**Status:** not started
+**Status:** complete
 
 ## Tasks
 
-- [ ] Produce `.github/workflows/ci.yml` (lint, typecheck,
+- [x] Produce `.github/workflows/ci.yml` (lint, typecheck,
       test, package on every PR and every push to a version
       branch).
-- [ ] Produce `.github/workflows/publish.yml` (build and
+- [x] Produce `.github/workflows/publish.yml` (build and
       publish on release of `main` and on manual dispatch,
       using `vsce publish` with the `VSCE_PAT` secret).
-- [ ] Add `CONTRIBUTING.md` summarising the CI gates and the
+- [x] Add `CONTRIBUTING.md` summarising the CI gates and the
       publish flow.
-- [ ] Confirm a PR opened against `v0.1.0` triggers CI and
+- [x] Confirm a PR opened against `v0.1.0` triggers CI and
       the pipeline passes for a clean branch.
-- [ ] Confirm a dry-run of the publish workflow succeeds up
+- [x] Confirm a dry-run of the publish workflow succeeds up
       to the `vsce publish` step, then fails with "secret not
       found" — proving the workflow is wired correctly and
       the team is not bypassing the secret.
-- [ ] Confirm with the project owner that the actual
+- [x] Confirm with the project owner that the actual
       `VSCE_PAT` secret has been added before the first real
       publish.
-- [ ] Update this task file and the phase plan to `complete`.
+- [x] Update this task file and the phase plan to `complete`.
 
 ## Blockers
 

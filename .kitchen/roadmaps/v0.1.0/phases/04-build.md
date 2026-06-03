@@ -1,7 +1,7 @@
 # Phase 04 — Build
 
 **Owner:** `fullstack-engineer`
-**Status:** complete (depends on phases 01, 02, 03)
+**Status:** complete; defect round resolved 2026-06-03 (see below)
 **Goal:** ship a working VSCode extension that delivers the
 v0.1.0 user path end-to-end on the `v0.1.0` branch.
 
@@ -66,6 +66,32 @@ two unused `vitest` imports from the test files
   (Bearer auth on candidate #1). The build defaults to
   candidate #1; the swap is a one-line change in
   `src/api/endpoints.ts`.
+
+### Defect round (post-project-owner local test, 2026-06-03)
+
+The project owner ran the local test on 2026-06-03 14:00 IST
+and surfaced 5 defects (D-1 through D-5). The canonical log
+is `.kitchen/test/defects-v0.1.0.md`; the per-defect fix
+specs are in
+`.kitchen/planning/v0.1.0-defect-resolution-plan.md`. All 5
+defects are fixed (4 Blocker, 1 Major) on the `v0.1.0`
+branch as 5 atomic conventional commits:
+
+| Defect | Severity | Commit | Files touched |
+| --- | --- | --- | --- |
+| D-1 — Subscription Key custom row missing from Settings UI | Blocker | `82012e1` | `package.json`, `src/strings.ts`, `src/settings/schema.ts`, `test/strings.test.ts`, `.kitchen/architecture/extension-architecture.md` § 5.1, `.kitchen/design/strings-v0.1.0.md` |
+| D-2 — No refresh after setApiKey | Blocker | `4230b29` | `src/extension.ts`, `src/secrets/secretStorage.ts` |
+| D-3 + D-4 — Status bar click + modal template | Blocker | `dc1178d` | `src/ui/webview/usageModal.ts`, `esbuild.config.mjs`, `test/ui/usageModal.test.ts` (new) |
+| D-5 — `*` activation event warning | Major | `77188f0` | `package.json`, `.kitchen/architecture/extension-architecture.md` § 3 |
+
+Verification after the round: lint, typecheck, test
+(147/147 pass across 8 files), build (with the new
+`assertWebviewAssets()` check), `package:prod` (clean, no
+`vsce` warning), and the `MINIMAX_USAGE_DEV_KEY` hard-fail
+all green. The phase 05 follow-up scenarios in
+`.kitchen/test/defects-v0.1.0.md` "Untouched but flagged"
+section (3.2, 3.4, 3.5, 3.6, 3.8, 4.1, 4.3, 4.4, 5.x, 7.x)
+remain to be exercised in the next pass.
 
 ## Inputs
 

@@ -1,18 +1,19 @@
 # MiniMax Usage
 
 <p align="center">
-  <img src="./images/logo-v0.1.0.png" alt="MiniMax Usage" width="160" />
+  <img src="https://raw.githubusercontent.com/devparanjay/minimax-usage/main/images/logo-v0.1.0.png" alt="MiniMax Usage" width="160" />
 </p>
 
 See your MiniMax Token Plan and Credits usage in the VSCode status bar, with one click for the full picture.
 
 <!-- TODO: add status-bar-and-modal screenshot when one is available -->
-![MiniMax Usage — status bar and modal](https://github.com/devparanjay/minimax-usage/raw/main/images/screenshot.png)
+![MiniMax Usage — status bar and modal](https://raw.githubusercontent.com/devparanjay/minimax-usage/main/images/screenshot.png)
 
 MiniMax Usage is a VSCode extension for MiniMax subscribers who would rather not switch to the platform console to check how much of the 5-Hour Limit or Weekly Limit is left. The extension adds a status bar entry that shows the live Token Plan percentages, and a modal that opens on click for the full breakdown.
 
-[![Install from VSCode Marketplace](https://img.shields.io/vscode-marketplace/v/devparanjay.minimax-usage.svg?style=flat-square&label=VSCode%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=devparanjay.minimax-usage)
-[![Star on GitHub](https://img.shields.io/github/stars/devparanjay/minimax-usage.svg?style=social)](https://github.com/devparanjay/minimax-usage)
+[![Install from VSCode Marketplace](https://img.shields.io/vscode-marketplace/v/devparanjay.minimax-usage.svg?style=flat-square&label=VSCode%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=devparanjay.minimax-usage) [![Star on GitHub](https://img.shields.io/github/stars/devparanjay/minimax-usage.svg?style=social)](https://github.com/devparanjay/minimax-usage)
+
+The install badge reflects the Marketplace's pre-publish state. The listing is wired and ready; the project owner publishes when ready.
 
 If this extension saves you a context switch, consider giving it a star on [GitHub](https://github.com/devparanjay/minimax-usage) — it helps others find it.
 
@@ -92,7 +93,7 @@ The status bar polls every 60 seconds in the background, plus on window focus an
 
 The extension does not phone home. There is no telemetry, no analytics, no crash reporting. The Subscription Key is held in VSCode's `SecretStorage` (encrypted at rest, on the local machine) and never leaves the machine except as the `Authorization: Bearer <key>` header in the request to the platform. The platform is the only network destination the extension talks to.
 
-For the full threat model, see [`/docs/security.md`](./docs/security.md).
+For the full threat model, see [`/docs/security.md`](https://github.com/devparanjay/minimax-usage/blob/main/docs/security.md).
 
 ## Contributing and feedback
 
@@ -100,7 +101,7 @@ Bug reports and feature requests go on the [GitHub issues page](https://github.c
 
 ## License
 
-[AGPL v3](./LICENSE).
+[AGPL v3](https://github.com/devparanjay/minimax-usage/blob/main/LICENSE).
 
 ## Disclaimer
 

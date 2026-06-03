@@ -1,0 +1,101 @@
+{
+  "name": "minimax-usage",
+  "displayName": "MiniMax Usage",
+  "description": "Show near-realtime MiniMax plan usage inside VSCode.",
+  "version": "0.1.0",
+  "publisher": "<PUBLISHER_PLACEHOLDER>",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "MiniMax",
+    "usage",
+    "quota",
+    "status bar"
+  ],
+  "main": "./dist/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/<PUBLISHER_PLACEHOLDER>/minimax-usage"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "minimaxUsage.setApiKey",
+        "title": "Set your API key"
+      },
+      {
+        "command": "minimaxUsage.openSettings",
+        "title": "MiniMax Usage: Open Settings"
+      },
+      {
+        "command": "minimaxUsage.showUsage",
+        "title": "MiniMax Usage: Show Usage"
+      }
+    ],
+    "configuration": {
+      "title": "MiniMax Usage",
+      "type": "object",
+      "properties": {
+        "minimaxUsage.region": {
+          "type": "string",
+          "enum": [
+            "overseas",
+            "cn"
+          ],
+          "default": "overseas",
+          "markdownDescription": "Which MiniMax platform the Subscription Key is bound to. **Overseas** users have keys from `platform.minimax.io`; **Mainland China** users have keys from `platform.minimaxi.com`. If you subscribed on a different platform, change this setting — a wrong region will surface as 'invalid key'.",
+          "enumDescriptions": [
+            "Overseas platform — `platform.minimax.io` (default).",
+            "Mainland China platform — `platform.minimaxi.com`."
+          ]
+        },
+        "minimaxUsage.displayMode": {
+          "type": "string",
+          "enum": [
+            "tokenPlan",
+            "credits",
+            "both"
+          ],
+          "default": "tokenPlan",
+          "markdownDescription": "What the status bar and modal show.",
+          "enumDescriptions": [
+            "Token Plan — 5-Hour and Weekly progress bars",
+            "Credits — Balance only",
+            "Both — Token Plan and Credits side by side"
+          ]
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "dev": "node esbuild.config.mjs --watch",
+    "lint": "eslint . --ext .ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package --no-dependencies",
+    "package:prod": "cross-env NODE_ENV=production npm run build && vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "@vitest/coverage-v8": "^1.4.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.3",
+    "vitest": "^1.4.0",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {}
+}

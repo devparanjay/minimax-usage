@@ -9,13 +9,13 @@
   </head>
   <body>
     <header class="header">
-      <h1 class="header__title" id="title">MiniMax Usage</h1>
+      <h1 class="header__title" id="title" data-str="STR_MODAL_TITLE_TOKENPLAN"></h1>
     </header>
 
     <main class="content">
       <section id="loading-state" class="state state--loading" hidden>
         <div class="state__icon codicon codicon-loading~spin"></div>
-        <div class="state__body">Fetching usage…</div>
+        <div class="state__body" data-str="STR_MODAL_LOADING_BODY"></div>
       </section>
 
       <section id="data" class="blocks"></section>
@@ -26,8 +26,8 @@
     </main>
 
     <footer class="footer">
-      <span class="footer__timestamp" id="last-updated">Last updated never</span>
-      <button class="footer__link" id="open-settings-link">Open Settings</button>
+      <span class="footer__timestamp" id="last-updated" data-str="STR_FOOTER_LAST_UPDATED_NEVER"></span>
+      <button class="footer__link" id="open-settings-link" data-str="STR_FOOTER_OPEN_SETTINGS"></button>
     </footer>
 
     <script src="modal.js"></script>

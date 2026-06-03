@@ -1,11 +1,5 @@
 import * as vscode from "vscode";
-
-const STRINGS = {
-  TITLE: "Set your MiniMax API key",
-  BODY: "Get your Subscription Key from the MiniMax platform. You can find it under Billing → Token Plan.",
-  OPEN_SETTINGS: "Open Settings",
-  LATER: "Later"
-} as const;
+import { STRINGS } from "../strings";
 
 export interface PostFirstRunOptions {
   secrets: { getApiKey(): Promise<string | undefined> };
@@ -20,11 +14,11 @@ export async function postFirstRun(options: PostFirstRunOptions): Promise<vscode
     return null;
   }
 
-  const openSettings = STRINGS.OPEN_SETTINGS;
-  const later = STRINGS.LATER;
+  const openSettings = STRINGS.STR_FIRST_RUN_NOTIFICATION_OPEN_SETTINGS;
+  const later = STRINGS.STR_FIRST_RUN_NOTIFICATION_LATER;
   const choice = await vscode.window.showInformationMessage(
-    STRINGS.TITLE,
-    { detail: STRINGS.BODY, modal: false },
+    STRINGS.STR_FIRST_RUN_NOTIFICATION_TITLE,
+    { detail: STRINGS.STR_FIRST_RUN_NOTIFICATION_BODY, modal: false },
     openSettings,
     later
   );

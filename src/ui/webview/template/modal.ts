@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ModalSnapshot, HostMessage, WebviewMessage } from "../../../types/messages";
 import type { UsageResponse, ModelRemain } from "../../../types/contract";
+import { STRINGS } from "../../../strings";
+import { formatResetIn, formatLastUpdatedAgo } from "../../../util/format";
 
 declare function acquireVsCodeApi(): {
   postMessage(message: WebviewMessage): void;
@@ -77,44 +79,32 @@ function computeFillPercent(remaining: number): number {
 }
 
 function formatPercent(remaining: number): string {
-  return `${clamp(Math.round(remaining), 0, 100)}%`;
+  return STRINGS.STR_BAR_REMAINING.replace("{N}", String(clamp(Math.round(remaining), 0, 100)));
 }
 
 function formatQuotaUsed(remaining: number): string {
-  return `Quota used ${clamp(Math.round(100 - remaining), 0, 100)}%`;
+  return STRINGS.STR_BAR_QUOTA_USED.replace(
+    "{N}",
+    String(clamp(Math.round(100 - remaining), 0, 100))
+  );
 }
 
 function formatResetsIn(valueMs: number): string {
-  if (!Number.isFinite(valueMs) || valueMs < 0) {
-    return "Resets in 0s";
-  }
-  const total = Math.floor(valueMs / 1000);
-  if (total < 60) {
-    return `Resets in ${total}s`;
-  }
-  if (total < 3600) {
-    const m = Math.floor(total / 60);
-    const s = total % 60;
-    return `Resets in ${m}m ${String(s).padStart(2, "0")}s`;
-  }
-  if (total < 86_400) {
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    return `Resets in ${h}h ${m}m`;
-  }
-  const d = Math.floor(total / 86_400);
-  const h = Math.floor((total % 86_400) / 3600);
-  return `Resets in ${d}d ${h}h`;
+  return STRINGS.STR_BAR_RESETS_IN.replace("{reset}", formatResetIn(valueMs));
 }
 
-function formatLastUpdated(seconds: number): string {
-  if (seconds < 60) {
-    return `Last updated ${Math.max(0, Math.floor(seconds))}s ago`;
-  }
-  if (seconds < 3600) {
-    return `Last updated ${Math.floor(seconds / 60)} min ago`;
-  }
-  return `Last updated ${Math.floor(seconds / 3600)}h ago`;
+function applyStaticStrings(): void {
+  const nodes = document.querySelectorAll<HTMLElement>("[data-str]");
+  nodes.forEach((node) => {
+    const id = node.dataset["str"];
+    if (!id) {
+      return;
+    }
+    const value = (STRINGS as unknown as Record<string, string>)[id];
+    if (typeof value === "string") {
+      node.textContent = value;
+    }
+  });
 }
 
 function renderBar(container: HTMLElement, opts: {
@@ -144,19 +134,19 @@ function renderEmpty(container: HTMLElement): void {
   clearChildren(container);
   const block = el("div", "block block--empty");
   block.appendChild(el("div", "block__icon", "$(info)"));
-  block.appendChild(el("div", "block__title", "Token Plan data unavailable."));
-  block.appendChild(el("div", "block__body", "Check the MiniMax console."));
+  block.appendChild(el("div", "block__title", STRINGS.STR_EMPTY_TITLE));
+  block.appendChild(el("div", "block__body", STRINGS.STR_EMPTY_BODY));
   container.appendChild(block);
 }
 
 function renderCreditsUnavailable(container: HTMLElement): void {
   clearChildren(container);
   const block = el("div", "block");
-  block.appendChild(el("div", "block__title", "Credits Balance"));
+  block.appendChild(el("div", "block__title", STRINGS.STR_BLOCK_CREDITS_TITLE));
   const placeholder = el("div", "placeholder");
   placeholder.appendChild(el("div", "placeholder__icon", "$(info)"));
-  placeholder.appendChild(el("div", "placeholder__title", "Credits Balance unavailable from the official API."));
-  placeholder.appendChild(el("div", "placeholder__body", "Coming in a future version."));
+  placeholder.appendChild(el("div", "placeholder__title", STRINGS.STR_CREDITS_UNAVAILABLE_TITLE));
+  placeholder.appendChild(el("div", "placeholder__body", STRINGS.STR_CREDITS_UNAVAILABLE_BODY));
   block.appendChild(placeholder);
   container.appendChild(block);
 }
@@ -164,7 +154,7 @@ function renderCreditsUnavailable(container: HTMLElement): void {
 function renderCreditsAvailable(container: HTMLElement, balance: unknown): void {
   clearChildren(container);
   const block = el("div", "block");
-  block.appendChild(el("div", "block__title", "Credits Balance"));
+  block.appendChild(el("div", "block__title", STRINGS.STR_BLOCK_CREDITS_TITLE));
   block.appendChild(el("div", "block__value", describeBalance(balance)));
   container.appendChild(block);
 }
@@ -175,10 +165,10 @@ function describeBalance(balance: unknown): string {
   }
   const o = balance as Record<string, unknown>;
   if (typeof o["amount"] === "string") {
-    return `${o["amount"]} remaining`;
+    return STRINGS.STR_CREDITS_BALANCE.replace("{amount}", o["amount"]);
   }
   if (typeof o["amount"] === "number") {
-    return `${o["amount"]} remaining`;
+    return STRINGS.STR_CREDITS_BALANCE.replace("{amount}", String(o["amount"]));
   }
   if (typeof o["credits"] === "number") {
     return `${o["credits"]} credits remaining`;
@@ -187,7 +177,7 @@ function describeBalance(balance: unknown): string {
     return `${o["balance"]} credits remaining`;
   }
   if (typeof o["balance"] === "string") {
-    return `${o["balance"]} remaining`;
+    return STRINGS.STR_CREDITS_BALANCE.replace("{amount}", o["balance"]);
   }
   return "—";
 }
@@ -200,31 +190,32 @@ function renderErrorBlock(container: HTMLElement, state: ModalSnapshot["state"])
   const cta = el("button", "error__cta");
 
   if (state === "error:invalid_key") {
-    titleEl.textContent = "Couldn't verify your Token Plan key";
-    const p1 = el("p");
-    p1.innerHTML =
-      "Make sure you're using your Subscription Key from Billing &rarr; Token Plan, not your Open Platform API Key from Account &rarr; Basic Information.";
-    const p2 = el("p");
-    p2.innerHTML =
-      "If you subscribed on a different platform (overseas vs Mainland China), switch the region in settings.";
-    bodyEl.appendChild(p1);
-    bodyEl.appendChild(p2);
-    cta.textContent = "Open Settings";
+    titleEl.textContent = STRINGS.STR_ERROR_INVALIDKEY_TITLE;
+    const paragraphs = STRINGS.STR_ERROR_INVALIDKEY_BODY.split("\n\n");
+    for (const para of paragraphs) {
+      const p = el("p");
+      p.innerHTML = para
+        .replace(/→/g, "&rarr;")
+        .replace(/Subscription Key/g, "<strong>Subscription Key</strong>")
+        .replace(/Open Platform API Key/g, "<strong>Open Platform API Key</strong>");
+      bodyEl.appendChild(p);
+    }
+    cta.textContent = STRINGS.STR_ERROR_INVALIDKEY_CTA_PRIMARY;
     cta.dataset["action"] = "openSettings";
   } else if (state === "error:rate_limited") {
-    titleEl.textContent = "Too many requests";
-    bodyEl.textContent = "Cooling down. The next refresh will happen automatically within a minute.";
-    cta.textContent = "Dismiss";
+    titleEl.textContent = STRINGS.STR_ERROR_RATELIMITED_TITLE;
+    bodyEl.textContent = STRINGS.STR_ERROR_RATELIMITED_BODY;
+    cta.textContent = STRINGS.STR_ERROR_RATELIMITED_CTA_PRIMARY;
     cta.dataset["action"] = "dismiss";
   } else if (state === "error:transient") {
-    titleEl.textContent = "Couldn't reach the MiniMax API";
-    bodyEl.textContent = "Will retry automatically.";
-    cta.textContent = "Dismiss";
+    titleEl.textContent = STRINGS.STR_ERROR_TRANSIENT_TITLE;
+    bodyEl.textContent = STRINGS.STR_ERROR_TRANSIENT_BODY;
+    cta.textContent = STRINGS.STR_ERROR_TRANSIENT_CTA_PRIMARY;
     cta.dataset["action"] = "dismiss";
   } else if (state === "error:unavailable") {
-    titleEl.textContent = "MiniMax API temporarily unavailable";
-    bodyEl.textContent = "Will retry.";
-    cta.textContent = "Dismiss";
+    titleEl.textContent = STRINGS.STR_ERROR_UNAVAILABLE_TITLE;
+    bodyEl.textContent = STRINGS.STR_ERROR_UNAVAILABLE_BODY;
+    cta.textContent = STRINGS.STR_ERROR_UNAVAILABLE_CTA_PRIMARY;
     cta.dataset["action"] = "dismiss";
   } else {
     return;
@@ -251,10 +242,12 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
   setText("title", titleFor(snapshot));
   setVisible("loading-state", state === "loading" || state === "idle");
 
-  const showData =
-    state === "success" ||
-    state === "empty" ||
-    state === "quota_exhausted";
+  const displayMode = snapshot.displayMode;
+  const isCreditsOnly = displayMode === "credits";
+  const showTokenPlanData =
+    state === "success" || state === "empty" || state === "quota_exhausted";
+  const showBlocks = showTokenPlanData && !isCreditsOnly;
+  const showData = showBlocks;
   setVisible("data", showData);
   setVisible("error", state.startsWith("error:"));
 
@@ -271,13 +264,13 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
       } else {
         clearChildren(data);
         renderBar(data, {
-          title: "5-Hour Limit",
+          title: STRINGS.STR_BLOCK_5H_TITLE,
           remainingPercent: model.current_interval_remaining_percent,
           resetsInMs: model.remains_time
         });
         data.appendChild(el("hr", "divider"));
         renderBar(data, {
-          title: "Weekly Limit",
+          title: STRINGS.STR_BLOCK_WEEKLY_TITLE,
           remainingPercent: model.current_weekly_remaining_percent,
           resetsInMs: model.weekly_remains_time
         });
@@ -294,8 +287,7 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
     }
   }
 
-  const showCredits =
-    showData && (snapshot.displayMode === "credits" || snapshot.displayMode === "both");
+  const showCredits = showTokenPlanData && (displayMode === "credits" || displayMode === "both");
   setVisible("credits-block", showCredits);
   const credits = $("credits-block");
   if (credits) {
@@ -311,16 +303,22 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
   setText(
     "last-updated",
     snapshot.lastSuccessAt
-      ? formatLastUpdated(Math.max(0, Math.floor((Date.now() - snapshot.lastSuccessAt) / 1000)))
-      : "Last updated never"
+      ? formatLastUpdatedAgo(
+          Math.max(0, Math.floor((Date.now() - snapshot.lastSuccessAt) / 1000)),
+          "modal"
+        )
+      : STRINGS.STR_FOOTER_LAST_UPDATED_NEVER
   );
 }
 
 function titleFor(snapshot: ModalSnapshot): string {
   if (snapshot.displayMode === "credits") {
-    return "Credits";
+    return STRINGS.STR_MODAL_TITLE_CREDITS;
   }
-  return "MiniMax Usage";
+  if (snapshot.displayMode === "both") {
+    return STRINGS.STR_MODAL_TITLE_BOTH;
+  }
+  return STRINGS.STR_MODAL_TITLE_TOKENPLAN;
 }
 
 function applyHostMessage(msg: HostMessage): void {
@@ -361,4 +359,5 @@ document.addEventListener("click", (event: MouseEvent) => {
   }
 });
 
+applyStaticStrings();
 vscodeApi.postMessage({ kind: "ready" });

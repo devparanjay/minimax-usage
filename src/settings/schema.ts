@@ -1,4 +1,13 @@
+// The `markdownDescription` and `enumDescriptions` strings in
+// `package.json#contributes.configuration` MUST mirror the values
+// returned by the functions in this file. The canonical source of
+// truth is `src/strings.ts`, which mirrors
+// `.kitchen/design/strings-v0.1.0.md`. The build phase does not
+// generate `package.json`; any drift between the schema output and
+// the manifest is a bug.
+
 import type { Region, DisplayMode } from "../types/settings";
+import { STRINGS } from "../strings";
 
 export interface ConfigurationSchema {
   [key: string]: unknown;
@@ -13,24 +22,24 @@ export const DEFAULT_REGION: Region = "overseas";
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "tokenPlan";
 
 export function regionMarkdownDescription(): string {
-  return "Which MiniMax platform the Subscription Key is bound to. **Overseas** users have keys from `platform.minimax.io`; **Mainland China** users have keys from `platform.minimaxi.com`. If you subscribed on a different platform, change this setting — a wrong region will surface as 'invalid key'.";
+  return STRINGS.STR_SETTINGS_REGION_MD_DESC;
 }
 
 export function regionEnumDescriptions(): [string, string] {
   return [
-    "Overseas platform — `platform.minimax.io` (default).",
-    "Mainland China platform — `platform.minimaxi.com`."
+    STRINGS.STR_SETTINGS_REGION_ENUM_0,
+    STRINGS.STR_SETTINGS_REGION_ENUM_1
   ];
 }
 
 export function displayModeMarkdownDescription(): string {
-  return "What the status bar and modal show.";
+  return STRINGS.STR_SETTINGS_DISPLAYMODE_MD_DESC;
 }
 
 export function displayModeEnumDescriptions(): [string, string, string] {
   return [
-    "Token Plan — 5-Hour and Weekly progress bars",
-    "Credits — Balance only",
-    "Both — Token Plan and Credits side by side"
+    STRINGS.STR_SETTINGS_DISPLAYMODE_ENUM_0,
+    STRINGS.STR_SETTINGS_DISPLAYMODE_ENUM_1,
+    STRINGS.STR_SETTINGS_DISPLAYMODE_ENUM_2
   ];
 }

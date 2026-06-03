@@ -124,6 +124,71 @@ describe("logger redaction R5: 401 body at error level", () => {
     const parsed = JSON.parse(out);
     expect(parsed.extra).toBe("field");
   });
+
+  it("Logger.error applies R5 when event is a UsageError-shaped object (kind=invalid_key)", () => {
+    const channel = new MockChannel();
+    const logger = createLogger(channel as unknown as import("vscode").OutputChannel);
+    const err = {
+      name: "UsageError",
+      kind: "invalid_key",
+      statusCode: 1004,
+      statusMsg: "sk-cp-SECRET-KEY"
+    };
+    logger.error("usage.error", err as unknown as Record<string, unknown>);
+    const line = channel.lines.find((l) => l.includes("usage.error"));
+    expect(line).toBeDefined();
+    expect(line).toContain("[redacted]");
+    expect(line).not.toContain("sk-cp-SECRET-KEY");
+    expect(line).toContain("invalid_key");
+    expect(line).toContain("1004");
+  });
+
+  it("Logger.warn keeps statusMsg for diagnostic purposes (R5 off at warn level)", () => {
+    const channel = new MockChannel();
+    const logger = createLogger(channel as unknown as import("vscode").OutputChannel);
+    const err = {
+      name: "UsageError",
+      kind: "invalid_key",
+      statusCode: 1004,
+      statusMsg: "not authorized"
+    };
+    logger.warn("usage.error", err as unknown as Record<string, unknown>);
+    const line = channel.lines.find((l) => l.includes("usage.error"));
+    expect(line).toBeDefined();
+    expect(line).toContain("not authorized");
+  });
+
+  it("Logger.error preserves R1 (Authorization header) on the error-level call", () => {
+    const channel = new MockChannel();
+    const logger = createLogger(channel as unknown as import("vscode").OutputChannel);
+    const err = {
+      name: "UsageError",
+      kind: "invalid_key",
+      statusCode: 1004,
+      headers: { Authorization: "Bearer sk-cp-XXXX" }
+    };
+    logger.error("usage.error", err as unknown as Record<string, unknown>);
+    const line = channel.lines.find((l) => l.includes("usage.error"));
+    expect(line).toBeDefined();
+    expect(line).toContain("[redacted]");
+    expect(line).not.toContain("sk-cp-XXXX");
+  });
+
+  it("Logger.error preserves R2 (sk-cp- shape) on the error-level call", () => {
+    const channel = new MockChannel();
+    const logger = createLogger(channel as unknown as import("vscode").OutputChannel);
+    const err = {
+      name: "UsageError",
+      kind: "invalid_key",
+      statusCode: 1004,
+      message: "tried sk-cp-DEADBEEF on overseas host"
+    };
+    logger.error("usage.error", err as unknown as Record<string, unknown>);
+    const line = channel.lines.find((l) => l.includes("usage.error"));
+    expect(line).toBeDefined();
+    expect(line).toContain("[redacted]");
+    expect(line).not.toContain("sk-cp-DEADBEEF");
+  });
 });
 
 describe("logger output channel", () => {

@@ -9,6 +9,7 @@ import { StatusBarController } from "./ui/statusBar";
 import { UsageModal } from "./ui/webview/usageModal";
 import { postFirstRun } from "./ui/notification";
 import { createCacheStore } from "./api/cache";
+import { STRINGS } from "./strings";
 
 let extensionContext: vscode.ExtensionContext | undefined;
 
@@ -86,12 +87,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   refs.cache = cache;
   refs.logger = logger;
 
-  refs.configListener = settings.onDidChangeSettings((change) => {
+  refs.configListener = settings.onDidChangeSettings(async (change) => {
+    const region = settings.readRegion();
+    const displayMode = settings.readDisplayMode();
+    await store.setRegion(region);
+    await store.setDisplayMode(displayMode);
     if (change.region) {
       cache.invalidateAll();
       void controller.refreshNow("region-change", { forceRefresh: true });
-    } else {
+    } else if (change.displayMode) {
       void statusBar.render();
+      void modal.postSnapshot(store.read());
     }
   });
   context.subscriptions.push(refs.configListener);
@@ -109,8 +115,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     async () => {
       const current = await secretStorage.getApiKey();
       const value = await vscode.window.showInputBox({
-        prompt: "Paste your Subscription Key",
-        placeHolder: "sk-cp-…",
+        prompt: STRINGS.STR_APIKEY_INPUTBOX_PROMPT,
+        placeHolder: STRINGS.STR_APIKEY_INPUTBOX_PLACEHOLDER,
         password: true,
         value: current ?? "",
         ignoreFocusOut: true,
@@ -119,7 +125,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             return undefined;
           }
           if (!v.startsWith("sk-cp-")) {
-            return "Subscription Keys start with `sk-cp-`. Check that you copied the full key from Billing → Token Plan.";
+            return STRINGS.STR_APIKEY_INPUTBOX_VALIDATION_ERROR;
           }
           return undefined;
         }
@@ -132,7 +138,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
       await secretStorage.setApiKey(value);
       void vscode.window.showInformationMessage(
-        "Subscription Key saved. MiniMax Usage will refresh."
+        STRINGS.STR_APIKEY_INPUTBOX_SUCCESS
       );
     }
   );
@@ -170,6 +176,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   });
 
+  await store.setRegion(settings.readRegion());
+  await store.setDisplayMode(settings.readDisplayMode());
   await statusBar.setApiKey(await secretStorage.getApiKey());
   await statusBar.render();
 

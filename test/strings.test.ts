@@ -19,6 +19,16 @@ describe("src/strings.ts sanity (canonical source is strings-v0.1.0.md)", () => 
     expect(STRINGS.STR_ERROR_INVALIDKEY_BODY).toContain("\n\n");
   });
 
+  it("exports a STR_SETTINGS_APIKEY_LINK with a command-URI anchor for the Settings row", () => {
+    expect(STRINGS.STR_SETTINGS_APIKEY_LINK).toContain("[Set your API key]");
+    expect(STRINGS.STR_SETTINGS_APIKEY_LINK).toContain(
+      "command:minimaxUsage.setApiKey"
+    );
+    expect(STRINGS.STR_SETTINGS_APIKEY_LINK).toBe(
+      "Click [Set your API key](command:minimaxUsage.setApiKey) to set or update your Subscription Key."
+    );
+  });
+
   it("exports a STR_FOOTER_LAST_UPDATED_NEVER string", () => {
     expect(STRINGS.STR_FOOTER_LAST_UPDATED_NEVER).toBe("Last updated never");
   });

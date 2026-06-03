@@ -26,8 +26,8 @@ export const STRINGS = {
   // 3.1 minimaxUsage.region
   STR_SETTINGS_REGION_MD_DESC:
     "Which MiniMax platform the Subscription Key is bound to. **Overseas** users have keys from `platform.minimax.io`; **Mainland China** users have keys from `platform.minimaxi.com`. If you subscribed on a different platform, change this setting — a wrong region will surface as 'invalid key'.",
-  STR_SETTINGS_REGION_ENUM_0: "Overseas platform — `platform.minimax.io` (default).",
-  STR_SETTINGS_REGION_ENUM_1: "Mainland China platform — `platform.minimaxi.com`.",
+  STR_SETTINGS_REGION_ENUM_0: "Overseas platform — `platform.minimax.io` (default)",
+  STR_SETTINGS_REGION_ENUM_1: "Mainland China platform — `platform.minimaxi.com`",
 
   // 3.2 minimaxUsage.displayMode
   STR_SETTINGS_DISPLAYMODE_MD_DESC: "What the status bar and modal show.",
@@ -41,6 +41,8 @@ export const STRINGS = {
   STR_SETTINGS_APIKEY_LABEL: "Subscription Key",
   STR_SETTINGS_APIKEY_DESC: "Set or update your MiniMax Subscription Key",
   STR_SETTINGS_APIKEY_BUTTON: "Set your API key",
+  STR_SETTINGS_APIKEY_LINK:
+    "Click [Set your API key](command:minimaxUsage.setApiKey) to set or update your Subscription Key.",
 
   // 4. Status bar text per state
   STR_STATUSBAR_SETUP: "Set up MiniMax Usage",

@@ -387,6 +387,15 @@ user-global, encrypted-at-rest store. The Settings UI's
   straight to `SecretStorage` and never round-trips through the
   Settings JSON.
 
+> **Note (v0.1.0 defect round, D-1):** the build's "Subscription
+> Key" row uses the `markdownDescription` + `command:…` URI
+> pattern — a `minimaxUsage.subscriptionKey` property with
+> `type: null` and a `markdownDescription` that contains
+> `command:minimaxUsage.setApiKey`. The Settings UI renders this
+> as a row with a clickable "Set your API key" link. The key
+> value itself still lives in `SecretStorage`; the property is a
+> UI hook, not a real config value.
+
 This design is explicit so phase 04 does not accidentally add
 `minimaxUsage.apiKey` to the schema (which would put the key in
 plain-text `settings.json`).

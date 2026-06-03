@@ -13,6 +13,7 @@ export interface ConfigurationSchema {
   [key: string]: unknown;
   "minimaxUsage.region": Region;
   "minimaxUsage.displayMode": DisplayMode;
+  "minimaxUsage.subscriptionKey": null;
 }
 
 export const REGION_KEY = "minimaxUsage.region" as const;

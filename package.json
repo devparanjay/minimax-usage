@@ -52,8 +52,8 @@
           "default": "overseas",
           "markdownDescription": "Which MiniMax platform the Subscription Key is bound to. **Overseas** users have keys from `platform.minimax.io`; **Mainland China** users have keys from `platform.minimaxi.com`. If you subscribed on a different platform, change this setting — a wrong region will surface as 'invalid key'.",
           "enumDescriptions": [
-            "Overseas platform — `platform.minimax.io` (default).",
-            "Mainland China platform — `platform.minimaxi.com`."
+            "Overseas platform — `platform.minimax.io` (default)",
+            "Mainland China platform — `platform.minimaxi.com`"
           ]
         },
         "minimaxUsage.displayMode": {
@@ -70,6 +70,10 @@
             "Credits — Balance only",
             "Both — Token Plan and Credits side by side"
           ]
+        },
+        "minimaxUsage.subscriptionKey": {
+          "type": "null",
+          "markdownDescription": "Click [Set your API key](command:minimaxUsage.setApiKey) to set or update your Subscription Key."
         }
       }
     }

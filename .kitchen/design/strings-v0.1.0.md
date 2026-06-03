@@ -72,6 +72,7 @@ is in § 13. The glossary is in § 14.
 | `STR_SETTINGS_APIKEY_LABEL` | "Subscription Key" | The label of the custom row. | Sentence case; "Key" is the noun. |
 | `STR_SETTINGS_APIKEY_DESC` | "Set or update your MiniMax Subscription Key" | The description under the label. | Action-oriented. |
 | `STR_SETTINGS_APIKEY_BUTTON` | "Set your API key" | The button that opens the `showInputBox`. | Matches the notification's framing. |
+| `STR_SETTINGS_APIKEY_LINK` | "Click [Set your API key](command:minimaxUsage.setApiKey) to set or update your Subscription Key." | The `markdownDescription` of the `minimaxUsage.subscriptionKey` property. The property is `type: null`; VSCode renders the row from the `markdownDescription` and turns the `[Set your API key](command:minimaxUsage.setApiKey)` syntax into a clickable command link. | The link text "Set your API key" matches `STR_SETTINGS_APIKEY_BUTTON` above and the first-run notification's "Set your MiniMax API key" framing. The `(default)` style "no trailing period" rule of `STR_SETTINGS_REGION_ENUM_*` applies here too — no period at the end. |
 
 ## 4. Status bar text per state
 

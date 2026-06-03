@@ -1,0 +1,9 @@
+# Default owner for everything
+* @devparanjay
+
+# Code-reviewer agent for source changes (informational; agents don't auto-approve)
+/src/ @devparanjay
+/test/ @devparanjay
+/.kitchen/architecture/ @devparanjay
+/.kitchen/security/ @devparanjay
+/.kitchen/decisions/ @devparanjay

@@ -11,8 +11,6 @@ export interface StatusBarItemOptions {
   store: StateStore;
   controller: PollingController;
   logger: Logger;
-  onClick: () => void;
-  openModal: () => void;
 }
 
 type PresentationState = ModalState | "setup" | "credits-unavailable";
@@ -26,7 +24,20 @@ interface StatusBarPresentation {
   command: string;
 }
 
-const DEFAULT_COMMAND = "minimaxUsage.showUsage";
+/**
+ * The default status-bar click opens the primary (left) sidebar
+ * view. The command `workbench.view.<containerId>` is a built-in
+ * VSCode command that activates the activity bar icon for the
+ * given view container and reveals its current view. The
+ * container id is `minimaxUsage` (added to the activity bar in
+ * v0.1.0 D-10). The earlier wrapper command was removed in
+ * D-10; switching to the built-in command avoids the wrapper
+ * and removes a layer of indirection. See the D-11 entry in
+ * `.kitchen/test/defects-round3-v0.1.0.md` for the regression
+ * that occurred when the wrapper was removed but this constant
+ * was not updated.
+ */
+const DEFAULT_COMMAND = "workbench.view.minimaxUsage";
 const SETUP_COMMAND = "minimaxUsage.setApiKey";
 const INVALID_KEY_COMMAND = "minimaxUsage.openSettings";
 

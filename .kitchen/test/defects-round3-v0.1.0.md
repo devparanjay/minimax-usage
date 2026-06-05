@@ -13,7 +13,7 @@ the left sidebar as the closest non-tab option and asked for it to be
 This document is the canonical defect log for round 3. Round 1's defect
 log (`.kitchen/test/defects-v0.1.0.md`) and round 2's defect log
 (`.kitchen/test/defects-round2-v0.1.0.md`) are now closed (D-1..D-9
-resolved). This document covers D-10 only.
+resolved). This document covers D-10 and D-11.
 
 ---
 
@@ -22,6 +22,7 @@ resolved). This document covers D-10 only.
 | ID   | Severity | Title                                                                                                                                          | Where                                                                                            | Blocking? |
 |------|----------|------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|------------|
 | D-10 | Blocker  | Status bar click UX does not match the project owner's intent — they want a real floating popup overlay above everything, not an editor / sidebar / bottom-panel tab. Closest VSCode-native option accepted: primary (left) sidebar view. | `package.json`, `src/extension.ts`, `src/ui/webview/sidebarUsageView.ts`, `src/ui/webview/template/sidebar.{html,css,ts}` | Yes |
+| D-11 | Blocker  | Status bar click in non-setup / non-invalid-key states throws "command 'minimaxUsage.showUsage' not found" — D-10 removed the command but the status bar's `DEFAULT_COMMAND` still references it. | `src/ui/statusBar.ts:30` (`DEFAULT_COMMAND`), `src/extension.ts` (StatusBarController options) | Yes |
 
 ---
 
@@ -99,9 +100,33 @@ The project owner accepted the **primary (left) sidebar** as the closest non-tab
 
 ---
 
+## D-11 — Status bar click throws "command 'minimaxUsage.showUsage' not found"
+
+**Source:** project owner's report, 2026-06-05 16:14 IST:
+
+> Getting this error when clicking the status bar after installing the rebuilt vsix - "command 'minimaxUsage.showUsage' not found"
+
+**Expected:** clicking the status bar opens the primary (left) sidebar (the same behaviour as the activity-bar icon click).
+
+**Actual:** clicking the status bar throws the error `command 'minimaxUsage.showUsage' not found` because the D-10 commit removed the `minimaxUsage.showUsage` command from `package.json#contributes.commands` but left `DEFAULT_COMMAND = "minimaxUsage.showUsage"` in `src/ui/statusBar.ts`. Every status-bar presentation in the switch statement except the `setup` and `error:invalid_key` cases falls through to `DEFAULT_COMMAND` (7 cases), so almost every status-bar click was broken.
+
+**Root cause:** the D-10 commit dropped the `minimaxUsage.showUsage` command and the `openUsage()` wrapper in `src/extension.ts` was updated to fire `workbench.view.minimaxUsage` directly, but the status bar's per-state `presentation.command` was not updated. The status bar's `DEFAULT_COMMAND` constant still referenced the removed command.
+
+**Fix:**
+
+1. **`src/ui/statusBar.ts`** — change `DEFAULT_COMMAND` from `"minimaxUsage.showUsage"` to `"workbench.view.minimaxUsage"` (the built-in VSCode command for opening an activity-bar view). Add a comment explaining the new command and the D-10 / D-11 history.
+2. **`src/ui/statusBar.ts`** — remove the dead `onClick` and `openModal` parameters from `StatusBarItemOptions` (the `StatusBarController` does not use them; the click is handled by VSCode via `item.command`).
+3. **`src/extension.ts`** — drop the `onClick: openUsage` and `openModal: openUsage` properties from the `StatusBarController` constructor options (no longer in the interface).
+
+**Where:** `src/ui/statusBar.ts`, `src/extension.ts`.
+
+**Severity:** Blocker. The primary user-visible surface (the status bar click) is broken for 7 of the 9 status-bar states.
+
+---
+
 ## Sign-off
 
-The round-3 defect log is closed when D-10 is fixed, committed, pushed to `origin/v0.1.0`, and verified by the project owner on the next test pass.
+The round-3 defect log is closed when D-10 and D-11 are fixed, committed, pushed to `origin/v0.1.0`, and verified by the project owner on the next test pass.
 
 ```
 Orchestrator: FooFoo                    Date: 2026-06-05

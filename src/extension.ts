@@ -8,7 +8,6 @@ import { PollingController } from "./polling/controller";
 import { StatusBarController } from "./ui/statusBar";
 import {
   SidebarUsageViewProvider,
-  SIDEBAR_CONTAINER_ID,
   SIDEBAR_VIEW_ID
 } from "./ui/webview/sidebarUsageView";
 import { postFirstRun } from "./ui/notification";
@@ -57,24 +56,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     getApiKey: () => secretStorage.getApiKey()
   });
 
-  /**
-   * Status bar click: open the left sidebar (the activity bar icon for
-   * `minimaxUsage`) and reveal the usage view. This is the popup UX
-   * for v0.1.0 — a real view in the primary (left) sidebar, not an
-   * editor tab and not a secondary-side-bar tab.
-   */
-  const openUsage: () => void = () => {
-    void vscode.commands.executeCommand(
-      `workbench.view.${SIDEBAR_CONTAINER_ID}`
-    );
-  };
+  // The status bar's click fires the built-in `workbench.view.minimaxUsage`
+  // command (set as `DEFAULT_COMMAND` in `src/ui/statusBar.ts`). The
+  // command activates the activity bar icon for the `minimaxUsage`
+  // container and reveals the usage view. This is the popup UX for
+  // v0.1.0 — a real view in the primary (left) sidebar, not an editor
+  // tab and not a secondary-side-bar tab.
 
   const statusBar = new StatusBarController(statusBarItem, {
     store,
     controller: undefined as unknown as PollingController,
-    logger,
-    onClick: openUsage,
-    openModal: openUsage
+    logger
   });
 
   const controller = new PollingController({

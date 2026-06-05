@@ -8,17 +8,20 @@ machine before the v0.1.0 → main PR.
 defects. Anything else blocks the PR.
 
 This guide supersedes `.kitchen/test/local-test-guide-v0.1.0-r2.md`
-(round 2). Round 2 surfaced four more defects (D-6..D-9). Round 3 is
-D-10 only: the popup UX was changed from the right-secondary-sidebar
-view (round 2) to a beautiful, easy-on-the-eyes view in the
-**primary (left) sidebar**. The previous editor tab and right
-sidebar are gone; the `modalLocation` setting is gone.
+(round 2). Round 2 surfaced four more defects (D-6..D-9). Round 3
+covers D-10, D-11, and D-12: the popup UX was changed from the
+right-secondary-sidebar view (round 2) to a beautiful,
+easy-on-the-eyes view in the **primary (left) sidebar**. The
+previous editor tab and right sidebar are gone; the
+`modalLocation` setting is gone. D-11 and D-12 fix status-bar
+click regressions in the round-3 build (see section 1.6 for the
+regression-guard note).
 
 The defect logs are the source of truth for what was broken and how
 it was fixed:
 - `.kitchen/test/defects-v0.1.0.md` (D-1..D-5)
 - `.kitchen/test/defects-round2-v0.1.0.md` (D-6..D-9)
-- `.kitchen/test/defects-round3-v0.1.0.md` (D-10)
+- `.kitchen/test/defects-round3-v0.1.0.md` (D-10, D-11, D-12)
 
 When you have completed the test, sign section 9. The orchestrator
 opens the v0.1.0 → main PR after your sign-off.
@@ -90,7 +93,7 @@ extension's logo. That's the sidebar view's icon.
 | 1.3 | Click "Open Settings" in the notification | The Settings UI opens filtered to `minimaxUsage`. You see: `minimaxUsage: Region` (overseas default), `minimaxUsage: Display Mode` (Token Plan default), `minimaxUsage: Subscription Key` (the command-link row). The `minimaxUsage.modalLocation` setting is **gone** (removed in round 3 / D-10). | ☐ | |
 | 1.4 | Click "Set your API key" → paste your real Subscription Key → Enter | The input box is dismissed; the key is written to `SecretStorage` (no log line, no file). A confirmation toast: "Subscription Key saved. MiniMax Usage will refresh." | ☐ | |
 | 1.5 | Watch the status bar | The status bar transitions through `$(loading~spin) Loading…` and lands on the success state: `$(check) 5h: NN% · 7d: NN%` | ☐ | |
-| 1.6 | Click the status bar | The **activity bar icon for "MiniMax Usage"** activates (the icon highlights) and the **primary (left) sidebar** opens, showing the sidebar view with: header (title "MiniMax Usage", region label "Overseas", "Last updated never"), main area (the 5-Hour Limit and Weekly Limit blocks with progress bars), footer ("Open Settings" link). The view is **not** in the secondary (right) sidebar and **not** in an editor tab. **No "command 'minimaxUsage.showUsage' not found" error appears** (D-11 regression guard — the status bar's click now fires the built-in `workbench.view.minimaxUsage` command, not the removed wrapper). | ☐ | |
+| 1.6 | Click the status bar | The **activity bar icon for "MiniMax Usage"** activates (the icon highlights) and the **primary (left) sidebar** opens, showing the sidebar view with: header (title "MiniMax Usage", region label "Overseas", "Last updated never"), main area (the 5-Hour Limit and Weekly Limit blocks with progress bars), footer ("Open Settings" link). The view is **not** in the secondary (right) sidebar and **not** in an editor tab. **No "command not found" error appears** — the status bar's click fires the `minimaxUsage.openUsage` wrapper registered in `src/extension.ts` (D-12), which in turn calls the built-in `workbench.view.minimaxUsage.usage` command (the *view* id, not the container id). The D-11 / D-12 history: D-10 removed the `minimaxUsage.showUsage` wrapper and pointed the click at the built-in `workbench.view.minimaxUsage` (the container id, which is not a view id — wrong); D-11 changed it to the same wrong id; D-12 reverts the status bar to a custom wrapper and the wrapper to the correct built-in. The end-to-end chain `item.command` → `minimaxUsage.openUsage` (registered in `src/extension.ts`) → `workbench.view.minimaxUsage.usage` (built-in) is what the regression test in `test/ui/statusBarCommands.test.ts` asserts. | ☐ | |
 | 1.7 | Click the status bar again | The sidebar stays open with the latest data; the polling controller fires a fresh fetch (the 30s in-memory cache may short-circuit it within 30s) | ☐ | |
 | 1.8 | Click the activity bar icon directly (without using the status bar) | The sidebar opens with the same content | ☐ | |
 | 1.9 | Reload the VSCode window (`Developer: Reload Window`) | The status bar restores to the last known good state; no re-prompt; the key is still in `SecretStorage`. The activity bar icon is still there. | ☐ | |

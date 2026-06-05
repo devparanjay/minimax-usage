@@ -169,6 +169,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
   context.subscriptions.push(openSettingsCmd);
 
+  // D-12 wrapper for the status bar's default click. The status bar's
+  // `DEFAULT_COMMAND` (see `src/ui/statusBar.ts`) points at
+  // `minimaxUsage.openUsage` rather than the built-in
+  // `workbench.view.<viewId>` directly. The view id is
+  // `minimaxUsage.usage` (the `SIDEBAR_VIEW_ID` exported from
+  // `src/ui/webview/sidebarUsageView.ts`); the container id is
+  // `minimaxUsage`. Going through a custom command keeps the
+  // orchestrator in control of the click flow — the status bar
+  // depends on a string we register here, not on a VSCode built-in
+  // that could be renamed in a future release.
+  const openUsageCmd = vscode.commands.registerCommand(
+    "minimaxUsage.openUsage",
+    async () => {
+      await vscode.commands.executeCommand("workbench.view.minimaxUsage.usage");
+    }
+  );
+  context.subscriptions.push(openUsageCmd);
+
   context.subscriptions.push({
     dispose: () => {
       controller.dispose();

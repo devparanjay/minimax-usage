@@ -26,18 +26,32 @@ interface StatusBarPresentation {
 
 /**
  * The default status-bar click opens the primary (left) sidebar
- * view. The command `workbench.view.<containerId>` is a built-in
- * VSCode command that activates the activity bar icon for the
- * given view container and reveals its current view. The
- * container id is `minimaxUsage` (added to the activity bar in
- * v0.1.0 D-10). The earlier wrapper command was removed in
- * D-10; switching to the built-in command avoids the wrapper
- * and removes a layer of indirection. See the D-11 entry in
- * `.kitchen/test/defects-round3-v0.1.0.md` for the regression
- * that occurred when the wrapper was removed but this constant
- * was not updated.
+ * view via the `minimaxUsage.openUsage` wrapper registered in
+ * `src/extension.ts` (D-12). The wrapper fires the built-in
+ * VSCode command `workbench.view.minimaxUsage.usage` — note the
+ * view id (`minimaxUsage.usage`, the `SIDEBAR_VIEW_ID` exported
+ * from `src/ui/webview/sidebarUsageView.ts`), not the container
+ * id (`minimaxUsage`). Using the container id is wrong: the
+ * built-in expects a view id, and clicking the status bar with
+ * the wrong id surfaces the VSCode error "command
+ * 'workbench.view.<containerId>' not found" (the regression
+ * fixed by D-12).
+ *
+ * The wrapper is preferred over pointing directly at the
+ * built-in: it lets the orchestrator control the click flow,
+ * keeps the status bar's wiring in TypeScript (we can grep
+ * for it), and decouples the status bar from a built-in that
+ * could be renamed in a future release.
+ *
+ * History: the earlier wrapper `minimaxUsage.showUsage` was
+ * removed in D-10; D-11 then changed this constant to
+ * `workbench.view.minimaxUsage` (the container id) which is
+ * itself wrong; D-12 changes it to `minimaxUsage.openUsage`,
+ * a wrapper that calls `workbench.view.minimaxUsage.usage`.
+ * See the D-11 / D-12 entries in
+ * `.kitchen/test/defects-round3-v0.1.0.md`.
  */
-const DEFAULT_COMMAND = "workbench.view.minimaxUsage";
+const DEFAULT_COMMAND = "minimaxUsage.openUsage";
 const SETUP_COMMAND = "minimaxUsage.setApiKey";
 const INVALID_KEY_COMMAND = "minimaxUsage.openSettings";
 

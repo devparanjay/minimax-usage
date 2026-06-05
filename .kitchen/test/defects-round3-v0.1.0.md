@@ -13,7 +13,7 @@ the left sidebar as the closest non-tab option and asked for it to be
 This document is the canonical defect log for round 3. Round 1's defect
 log (`.kitchen/test/defects-v0.1.0.md`) and round 2's defect log
 (`.kitchen/test/defects-round2-v0.1.0.md`) are now closed (D-1..D-9
-resolved). This document covers D-10 and D-11.
+resolved). This document covers D-10, D-11, and D-12.
 
 ---
 
@@ -23,6 +23,7 @@ resolved). This document covers D-10 and D-11.
 |------|----------|------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|------------|
 | D-10 | Blocker  | Status bar click UX does not match the project owner's intent — they want a real floating popup overlay above everything, not an editor / sidebar / bottom-panel tab. Closest VSCode-native option accepted: primary (left) sidebar view. | `package.json`, `src/extension.ts`, `src/ui/webview/sidebarUsageView.ts`, `src/ui/webview/template/sidebar.{html,css,ts}` | Yes |
 | D-11 | Blocker  | Status bar click in non-setup / non-invalid-key states throws "command 'minimaxUsage.showUsage' not found" — D-10 removed the command but the status bar's `DEFAULT_COMMAND` still references it. | `src/ui/statusBar.ts:30` (`DEFAULT_COMMAND`), `src/extension.ts` (StatusBarController options) | Yes |
+| D-12 | Blocker  | Status bar click throws "command 'workbench.view.minimaxUsage' not found" — D-11 changed `DEFAULT_COMMAND` to the *container* id, not a *view* id; the built-in `workbench.view.<viewId>` is not registered for a container id. Status bar now fires a custom `minimaxUsage.openUsage` wrapper that calls the built-in `workbench.view.minimaxUsage.usage` (the view id). | `src/extension.ts` (new wrapper registration), `src/ui/statusBar.ts:40` (`DEFAULT_COMMAND`), `test/ui/statusBarCommands.test.ts` (D-12 assertion) | Yes |
 
 ---
 
@@ -124,12 +125,37 @@ The project owner accepted the **primary (left) sidebar** as the closest non-tab
 
 ---
 
+## D-12 — Status bar click throws "command 'workbench.view.minimaxUsage' not found"
+
+**Source:** project owner's report, 2026-06-05 17:14 IST:
+
+> After rebuilding from v0.1.0 with the D-11 fix, clicking the status bar throws "command 'workbench.view.minimaxUsage' not found".
+
+**Expected:** clicking the status bar opens the primary (left) sidebar (the same behaviour as the activity-bar icon click).
+
+**Actual:** clicking the status bar throws the error `command 'workbench.view.minimaxUsage' not found` because the D-11 commit changed `DEFAULT_COMMAND` to `"workbench.view.minimaxUsage"`, but `minimaxUsage` is the *view container* id (the activity-bar entry), not a *view* id. The VSCode built-in `workbench.view.<viewId>` is registered for view ids, not container ids, and the extension does not register a `workbench.view.minimaxUsage` command (the only built-in that fires is for view ids, e.g. `workbench.view.minimaxUsage.usage`). The status bar fires the wrong id and VSCode cannot find a matching command.
+
+**Root cause:** the D-11 commit conflated "container id" and "view id". The `package.json#contributes.viewsContainers.activitybar[0].id` is `minimaxUsage` (the container); the `package.json#contributes.views.<containerId>[0].id` is `minimaxUsage.usage` (the view); the matching `SIDEBAR_VIEW_ID` constant in `src/ui/webview/sidebarUsageView.ts` is `"minimaxUsage.usage"`. The D-11 fix used the container id in a built-in command that expects a view id.
+
+**Fix:**
+
+1. **`src/extension.ts`** — register a new command `minimaxUsage.openUsage` in `activate()` that fires `vscode.commands.executeCommand("workbench.view.minimaxUsage.usage")` (the built-in, with the *view* id, not the container id). Push the disposable to `context.subscriptions`. The wrapper keeps the orchestrator in control of the click flow and decouples the status bar from a built-in that could be renamed in a future release. Keep the existing `minimaxUsage.setApiKey` and `minimaxUsage.openSettings` registrations as they are.
+2. **`src/ui/statusBar.ts`** — change `DEFAULT_COMMAND` from `"workbench.view.minimaxUsage"` to `"minimaxUsage.openUsage"`. Update the comment block to document the new wrapper, the D-10 / D-11 / D-12 history, and the container-vs-view id distinction.
+3. **`test/ui/statusBarCommands.test.ts`** — restructure the D-11 guard into a D-11 / D-12 guard with four assertions: (a) `DEFAULT_COMMAND` is `"minimaxUsage.openUsage"`, (b) the same id is registered with `vscode.commands.registerCommand` in `src/extension.ts` and the resulting disposable is pushed to `context.subscriptions` (both halves of the wiring must be in place — D-11 broke this in a subtler way), (c) the removed `minimaxUsage.showUsage` is not referenced, (d) the dead `onClick` / `openModal` options on `StatusBarItemOptions` are not declared. The second assertion is a structural test that reads both `src/ui/statusBar.ts` and `src/extension.ts` and asserts the wiring, not just the string in `DEFAULT_COMMAND`.
+
+**Where:** `src/extension.ts`, `src/ui/statusBar.ts`, `test/ui/statusBarCommands.test.ts`.
+
+**Severity:** Blocker. The primary user-visible surface (the status bar click) is broken for 7 of the 9 status-bar states. The D-11 fix did not actually resolve the breakage — it just changed the wrong id from a removed custom command to a non-existent built-in.
+
+---
+
 ## Sign-off
 
-The round-3 defect log is closed when D-10 and D-11 are fixed, committed, pushed to `origin/v0.1.0`, and verified by the project owner on the next test pass.
+The round-3 defect log is closed when D-10, D-11, and D-12 are fixed, committed, pushed to `origin/v0.1.0`, and verified by the project owner on the next test pass.
 
 ```
 Orchestrator: FooFoo                    Date: 2026-06-05
 Source: project owner report, 2026-06-05 15:14 IST
 Status: open (D-10)  in progress  resolved
+D-12 follow-up: registered custom wrapper + extended regression test
 ```

@@ -40,8 +40,8 @@ const hostEntry = {
 };
 
 const webviewEntry = {
-  entryPoints: ["src/ui/webview/template/modal.ts"],
-  outfile: "dist/webview/modal.js",
+  entryPoints: ["src/ui/webview/template/sidebar.ts"],
+  outfile: "dist/webview/sidebar.js",
   bundle: true,
   format: "cjs",
   platform: "browser",
@@ -53,15 +53,15 @@ const webviewEntry = {
 
 async function copyStaticAssets() {
   await mkdir("dist/webview", { recursive: true });
-  await cp("src/ui/webview/template/modal.html", "dist/webview/modal.html");
-  await cp("src/ui/webview/template/modal.css", "dist/webview/modal.css");
+  await cp("src/ui/webview/template/sidebar.html", "dist/webview/sidebar.html");
+  await cp("src/ui/webview/template/sidebar.css", "dist/webview/sidebar.css");
 }
 
 function assertWebviewAssets() {
   const expected = [
-    "dist/webview/modal.html",
-    "dist/webview/modal.css",
-    "dist/webview/modal.js"
+    "dist/webview/sidebar.html",
+    "dist/webview/sidebar.css",
+    "dist/webview/sidebar.js"
   ];
   for (const p of expected) {
     if (!existsSync(p)) {

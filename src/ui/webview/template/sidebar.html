@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MiniMax Usage</title>
+    <link rel="stylesheet" href="sidebar.css" />
+  </head>
+  <body class="sidebar">
+    <header class="sidebar__header" role="banner">
+      <div class="sidebar__title-row">
+        <span class="sidebar__logo" aria-hidden="true">$(pulse)</span>
+        <h1 class="sidebar__title" id="title" data-str="STR_SIDEBAR_TITLE"></h1>
+      </div>
+      <div class="sidebar__meta">
+        <span class="sidebar__region" id="region-indicator"></span>
+        <span class="sidebar__dot" aria-hidden="true">·</span>
+        <span class="sidebar__updated" id="last-updated" data-str="STR_FOOTER_LAST_UPDATED_NEVER"></span>
+      </div>
+    </header>
+
+    <main class="sidebar__content" id="content" role="main">
+      <section id="loading-state" class="state state--loading" hidden>
+        <div class="state__spinner codicon codicon-loading~spin" aria-hidden="true"></div>
+        <div class="state__text" data-str="STR_SIDEBAR_LOADING"></div>
+      </section>
+
+      <section id="data-blocks" class="blocks"></section>
+      <section id="credits-block" class="blocks" hidden></section>
+      <section id="error-block" class="error" hidden></section>
+    </main>
+
+    <footer class="sidebar__footer" role="contentinfo">
+      <button class="sidebar__link" id="open-settings-link" data-str="STR_SIDEBAR_FOOTER_SETTINGS"></button>
+    </footer>
+
+    <script src="sidebar.js"></script>
+  </body>
+</html>

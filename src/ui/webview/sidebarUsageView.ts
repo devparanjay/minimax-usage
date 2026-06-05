@@ -4,11 +4,15 @@ import { join } from "node:path";
 import type { StateStore } from "../../state/store";
 import type { PollingController } from "../../polling/controller";
 import type { Logger } from "../../util/logger";
-import type { ModalSnapshot, HostMessage, WebviewMessage } from "../../types/messages";
+import type {
+  ModalSnapshot,
+  HostMessage,
+  WebviewMessage
+} from "../../types/messages";
 import type { Region, DisplayMode } from "../../types/settings";
 import { onModalOpen } from "../../polling/triggers";
 
-export interface AuxiliaryUsageViewOptions {
+export interface SidebarUsageViewOptions {
   context: vscode.ExtensionContext;
   store: StateStore;
   controller: PollingController;
@@ -16,14 +20,22 @@ export interface AuxiliaryUsageViewOptions {
   getApiKey: () => Promise<string | undefined>;
 }
 
-export const AUXILIARY_VIEW_ID = "minimaxUsage.usage" as const;
+/**
+ * The webview view id registered in `package.json#contributes.views`.
+ * The view container id is `minimaxUsage` (added to the activity bar in
+ * v0.1.0 D-10) and the view itself is `minimaxUsage.usage`. The status
+ * bar click handler fires `workbench.view.minimaxUsage` which opens the
+ * container in the primary (left) sidebar and reveals the view.
+ */
+export const SIDEBAR_VIEW_ID = "minimaxUsage.usage";
+export const SIDEBAR_CONTAINER_ID = "minimaxUsage";
 
-export class AuxiliaryUsageViewProvider implements vscode.WebviewViewProvider {
-  private opts: AuxiliaryUsageViewOptions;
+export class SidebarUsageViewProvider implements vscode.WebviewViewProvider {
+  private opts: SidebarUsageViewOptions;
   private view: vscode.WebviewView | null = null;
   private disposables: vscode.Disposable[] = [];
 
-  constructor(options: AuxiliaryUsageViewOptions) {
+  constructor(options: SidebarUsageViewOptions) {
     this.opts = options;
   }
 
@@ -82,27 +94,27 @@ export class AuxiliaryUsageViewProvider implements vscode.WebviewViewProvider {
       this.opts.context.extensionPath,
       "dist",
       "webview",
-      "modal.html"
+      "sidebar.html"
     );
     try {
       return readFileSync(htmlPath, "utf8");
     } catch {
-      this.opts.logger.error("auxiliary.modal.template.missing", { htmlPath });
-      return "<!doctype html><html><body>MiniMax Usage modal template not found.</body></html>";
+      this.opts.logger.error("sidebar.view.template.missing", { htmlPath });
+      return "<!doctype html><html><body>MiniMax Usage sidebar template not found.</body></html>";
     }
   }
 
   private buildHtml(webview: vscode.Webview): string {
     const html = this.readBundledHtml();
     const cssUri = webview.asWebviewUri(
-      vscode.Uri.file(join(this.distDir(), "modal.css"))
+      vscode.Uri.file(join(this.distDir(), "sidebar.css"))
     );
     const jsUri = webview.asWebviewUri(
-      vscode.Uri.file(join(this.distDir(), "modal.js"))
+      vscode.Uri.file(join(this.distDir(), "sidebar.js"))
     );
     return html
-      .replace('href="modal.css"', `href="${cssUri.toString()}"`)
-      .replace('src="modal.js"', `src="${jsUri.toString()}"`);
+      .replace('href="sidebar.css"', `href="${cssUri.toString()}"`)
+      .replace('src="sidebar.js"', `src="${jsUri.toString()}"`);
   }
 
   private async handleWebviewMessage(msg: WebviewMessage): Promise<void> {
@@ -128,6 +140,7 @@ export class AuxiliaryUsageViewProvider implements vscode.WebviewViewProvider {
         break;
       }
       case "dismiss": {
+        await vscode.commands.executeCommand("workbench.action.closeSidebar");
         break;
       }
     }

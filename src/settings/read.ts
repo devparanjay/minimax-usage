@@ -2,36 +2,28 @@ import * as vscode from "vscode";
 import {
   REGION_KEY,
   DISPLAY_MODE_KEY,
-  MODAL_LOCATION_KEY,
   DEFAULT_REGION,
-  DEFAULT_DISPLAY_MODE,
-  DEFAULT_MODAL_LOCATION
+  DEFAULT_DISPLAY_MODE
 } from "./schema";
 import {
   isRegion,
   isDisplayMode,
-  isModalLocation,
   type Region,
-  type DisplayMode,
-  type ModalLocation
+  type DisplayMode
 } from "../types/settings";
 
 export interface SettingsReader {
   readRegion(): Region;
   readDisplayMode(): DisplayMode;
-  readModalLocation(): ModalLocation;
   onDidChangeSettings(handler: SettingsChangeHandler): vscode.Disposable;
 }
 
-export type SettingsChangeHandler = (
-  change: {
-    region: boolean;
-    displayMode: boolean;
-    modalLocation: boolean;
-    regionFrom: Region | undefined;
-    regionTo: Region;
-  }
-) => void;
+export type SettingsChangeHandler = (change: {
+  region: boolean;
+  displayMode: boolean;
+  regionFrom: Region | undefined;
+  regionTo: Region;
+}) => void;
 
 export function createSettingsReader(
   workspaceConfig: () => vscode.WorkspaceConfiguration
@@ -51,19 +43,11 @@ export function createSettingsReader(
       }
       return DEFAULT_DISPLAY_MODE;
     },
-    readModalLocation(): ModalLocation {
-      const v = workspaceConfig().get<unknown>(MODAL_LOCATION_KEY);
-      if (isModalLocation(v)) {
-        return v;
-      }
-      return DEFAULT_MODAL_LOCATION;
-    },
     onDidChangeSettings(handler: SettingsChangeHandler): vscode.Disposable {
       const sub: vscode.Disposable = vscode.workspace.onDidChangeConfiguration((e) => {
         const regionChanged = e.affectsConfiguration(REGION_KEY);
         const displayModeChanged = e.affectsConfiguration(DISPLAY_MODE_KEY);
-        const modalLocationChanged = e.affectsConfiguration(MODAL_LOCATION_KEY);
-        if (!regionChanged && !displayModeChanged && !modalLocationChanged) {
+        if (!regionChanged && !displayModeChanged) {
           return;
         }
         const cfg = workspaceConfig();
@@ -75,7 +59,6 @@ export function createSettingsReader(
         handler({
           region: regionChanged,
           displayMode: displayModeChanged,
-          modalLocation: modalLocationChanged,
           regionFrom,
           regionTo
         });

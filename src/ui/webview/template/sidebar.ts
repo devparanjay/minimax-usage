@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ModalSnapshot, HostMessage, WebviewMessage } from "../../../types/messages";
-import type { UsageResponse, ModelRemain } from "../../../types/contract";
+import type {
+  ModalSnapshot,
+  HostMessage,
+  WebviewMessage
+} from "../../../types/messages";
+import type { UsageResponse, ModelRemain, Region } from "../../../types/contract";
+import type { DisplayMode } from "../../../types/settings";
 import { STRINGS } from "../../../strings";
 import { formatResetIn, formatLastUpdatedAgo } from "../../../util/format";
 
@@ -18,7 +23,11 @@ function $(id: string): HTMLElement | null {
   return document.getElementById(id);
 }
 
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+function el<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className?: string,
+  text?: string
+): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) {
     node.className = className;
@@ -66,20 +75,16 @@ function clamp(value: number, min: number, max: number): number {
 
 function progressClassFor(remaining: number): string {
   if (remaining > 50) {
-    return "bar__fill";
+    return "block__bar-fill";
   }
   if (remaining > 20) {
-    return "bar__fill bar__fill--warning";
+    return "block__bar-fill block__bar-fill--warning";
   }
-  return "bar__fill bar__fill--danger";
+  return "block__bar-fill block__bar-fill--danger";
 }
 
 function computeFillPercent(remaining: number): number {
   return clamp(100 - remaining, 0, 100);
-}
-
-function formatPercent(remaining: number): string {
-  return STRINGS.STR_BAR_REMAINING.replace("{N}", String(clamp(Math.round(remaining), 0, 100)));
 }
 
 function formatQuotaUsed(remaining: number): string {
@@ -91,6 +96,12 @@ function formatQuotaUsed(remaining: number): string {
 
 function formatResetsIn(valueMs: number): string {
   return STRINGS.STR_BAR_RESETS_IN.replace("{reset}", formatResetIn(valueMs));
+}
+
+function regionLabel(region: Region): string {
+  return region === "cn"
+    ? STRINGS.STR_SIDEBAR_REGION_CN
+    : STRINGS.STR_SIDEBAR_REGION_OVESEAS;
 }
 
 function applyStaticStrings(): void {
@@ -107,55 +118,73 @@ function applyStaticStrings(): void {
   });
 }
 
-function renderBar(container: HTMLElement, opts: {
-  title: string;
-  remainingPercent: number;
-  resetsInMs: number;
-}): void {
+function renderBar(
+  container: HTMLElement,
+  opts: {
+    title: string;
+    remainingPercent: number;
+    resetsInMs: number;
+  }
+): void {
   clearChildren(container);
   const block = el("div", "block");
-  block.appendChild(el("div", "block__title", opts.title));
+  const head = el("div", "block__head");
+  head.appendChild(el("div", "block__title", opts.title));
+  head.appendChild(
+    el("div", "block__value", `${Math.round(opts.remainingPercent)}%`)
+  );
+  block.appendChild(head);
 
-  const bar = el("div", "bar");
+  const bar = el("div", "block__bar");
   const fill = el("div", progressClassFor(opts.remainingPercent));
   fill.style.width = `${computeFillPercent(opts.remainingPercent)}%`;
   bar.appendChild(fill);
   block.appendChild(bar);
 
-  const value = el("div", "block__value", formatPercent(opts.remainingPercent));
-  block.appendChild(value);
-
-  block.appendChild(el("div", "block__sub", formatQuotaUsed(opts.remainingPercent)));
-  block.appendChild(el("div", "block__sub", formatResetsIn(opts.resetsInMs)));
+  const sub = el("div", "block__sub");
+  sub.appendChild(
+    el("div", "block__sub-left", formatQuotaUsed(opts.remainingPercent))
+  );
+  sub.appendChild(
+    el("div", "block__sub-right", formatResetsIn(opts.resetsInMs))
+  );
+  block.appendChild(sub);
   container.appendChild(block);
 }
 
 function renderEmpty(container: HTMLElement): void {
   clearChildren(container);
   const block = el("div", "block block--empty");
-  block.appendChild(el("div", "block__icon", "$(info)"));
-  block.appendChild(el("div", "block__title", STRINGS.STR_EMPTY_TITLE));
-  block.appendChild(el("div", "block__body", STRINGS.STR_EMPTY_BODY));
+  block.appendChild(el("div", "block--empty__icon", "$(info)"));
+  block.appendChild(el("div", "block--empty__title", STRINGS.STR_EMPTY_TITLE));
+  block.appendChild(el("div", "block--empty__body", STRINGS.STR_EMPTY_BODY));
   container.appendChild(block);
 }
 
 function renderCreditsUnavailable(container: HTMLElement): void {
   clearChildren(container);
-  const block = el("div", "block");
-  block.appendChild(el("div", "block__title", STRINGS.STR_BLOCK_CREDITS_TITLE));
-  const placeholder = el("div", "placeholder");
-  placeholder.appendChild(el("div", "placeholder__icon", "$(info)"));
-  placeholder.appendChild(el("div", "placeholder__title", STRINGS.STR_CREDITS_UNAVAILABLE_TITLE));
-  placeholder.appendChild(el("div", "placeholder__body", STRINGS.STR_CREDITS_UNAVAILABLE_BODY));
-  block.appendChild(placeholder);
+  const block = el("div", "block block--credits-unavailable");
+  block.appendChild(
+    el("div", "block--credits-unavailable__icon", "$(info)")
+  );
+  block.appendChild(
+    el("div", "block--credits-unavailable__title", STRINGS.STR_CREDITS_UNAVAILABLE_TITLE)
+  );
+  block.appendChild(
+    el("div", "block--credits-unavailable__body", STRINGS.STR_CREDITS_UNAVAILABLE_BODY)
+  );
   container.appendChild(block);
 }
 
 function renderCreditsAvailable(container: HTMLElement, balance: unknown): void {
   clearChildren(container);
   const block = el("div", "block");
-  block.appendChild(el("div", "block__title", STRINGS.STR_BLOCK_CREDITS_TITLE));
-  block.appendChild(el("div", "block__value", describeBalance(balance)));
+  const head = el("div", "block__head");
+  head.appendChild(
+    el("div", "block__title", STRINGS.STR_BLOCK_CREDITS_TITLE)
+  );
+  head.appendChild(el("div", "block__value", describeBalance(balance)));
+  block.appendChild(head);
   container.appendChild(block);
 }
 
@@ -170,21 +199,27 @@ function describeBalance(balance: unknown): string {
   if (typeof o["amount"] === "number") {
     return STRINGS.STR_CREDITS_BALANCE.replace("{amount}", String(o["amount"]));
   }
-  if (typeof o["credits"] === "number") {
-    return `${o["credits"]} credits remaining`;
-  }
-  if (typeof o["balance"] === "number") {
-    return `${o["balance"]} credits remaining`;
-  }
   if (typeof o["balance"] === "string") {
     return STRINGS.STR_CREDITS_BALANCE.replace("{amount}", o["balance"]);
+  }
+  if (typeof o["balance"] === "number") {
+    return STRINGS.STR_CREDITS_BALANCE.replace("{amount}", String(o["balance"]));
+  }
+  if (typeof o["credits"] === "number") {
+    return `${o["credits"]} credits remaining`;
   }
   return "—";
 }
 
-function renderErrorBlock(container: HTMLElement, state: ModalSnapshot["state"]): void {
+function renderErrorBlock(
+  container: HTMLElement,
+  state: ModalSnapshot["state"]
+): void {
   clearChildren(container);
-  const block = el("div", `error error--${state.replace(":", "-")}`);
+  const variant = state.startsWith("error:")
+    ? state.replace("error:", "error-")
+    : state;
+  const block = el("div", `error error--${variant}`);
   const titleEl = el("div", "error__title");
   const bodyEl = el("div", "error__body");
   const cta = el("button", "error__cta");
@@ -207,16 +242,22 @@ function renderErrorBlock(container: HTMLElement, state: ModalSnapshot["state"])
     bodyEl.textContent = STRINGS.STR_ERROR_RATELIMITED_BODY;
     cta.textContent = STRINGS.STR_ERROR_RATELIMITED_CTA_PRIMARY;
     cta.dataset["action"] = "dismiss";
+    block.classList.remove("error--error-rate_limited");
+    block.classList.add("error--warning");
   } else if (state === "error:transient") {
     titleEl.textContent = STRINGS.STR_ERROR_TRANSIENT_TITLE;
     bodyEl.textContent = STRINGS.STR_ERROR_TRANSIENT_BODY;
     cta.textContent = STRINGS.STR_ERROR_TRANSIENT_CTA_PRIMARY;
     cta.dataset["action"] = "dismiss";
+    block.classList.remove("error--error-transient");
+    block.classList.add("error--info");
   } else if (state === "error:unavailable") {
     titleEl.textContent = STRINGS.STR_ERROR_UNAVAILABLE_TITLE;
     bodyEl.textContent = STRINGS.STR_ERROR_UNAVAILABLE_BODY;
     cta.textContent = STRINGS.STR_ERROR_UNAVAILABLE_CTA_PRIMARY;
     cta.dataset["action"] = "dismiss";
+    block.classList.remove("error--error-unavailable");
+    block.classList.add("error--info");
   } else {
     return;
   }
@@ -240,20 +281,22 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
   currentSnapshot = snapshot;
   const state = snapshot.state;
   setText("title", titleFor(snapshot));
+  setText("region-indicator", regionLabel(snapshot.region));
+
   setVisible("loading-state", state === "loading" || state === "idle");
 
-  const displayMode = snapshot.displayMode;
+  const displayMode: DisplayMode = snapshot.displayMode;
   const isCreditsOnly = displayMode === "credits";
   const showTokenPlanData =
     state === "success" || state === "empty" || state === "quota_exhausted";
   const showBlocks = showTokenPlanData && !isCreditsOnly;
-  const showData = showBlocks;
-  setVisible("data", showData);
-  setVisible("error", state.startsWith("error:"));
 
-  const data = $("data");
+  setVisible("data-blocks", showBlocks);
+  setVisible("error-block", state.startsWith("error:"));
+
+  const data = $("data-blocks");
   if (data) {
-    if (!showData) {
+    if (!showBlocks) {
       clearChildren(data);
     } else if (state === "empty") {
       renderEmpty(data);
@@ -268,7 +311,6 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
           remainingPercent: model.current_interval_remaining_percent,
           resetsInMs: model.remains_time
         });
-        data.appendChild(el("hr", "divider"));
         renderBar(data, {
           title: STRINGS.STR_BLOCK_WEEKLY_TITLE,
           remainingPercent: model.current_weekly_remaining_percent,
@@ -278,7 +320,7 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
     }
   }
 
-  const error = $("error");
+  const error = $("error-block");
   if (error) {
     if (state.startsWith("error:")) {
       renderErrorBlock(error, state);
@@ -287,7 +329,8 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
     }
   }
 
-  const showCredits = showTokenPlanData && (displayMode === "credits" || displayMode === "both");
+  const showCredits =
+    showTokenPlanData && (displayMode === "credits" || displayMode === "both");
   setVisible("credits-block", showCredits);
   const credits = $("credits-block");
   if (credits) {
@@ -312,13 +355,11 @@ function renderSnapshot(snapshot: ModalSnapshot): void {
 }
 
 function titleFor(snapshot: ModalSnapshot): string {
-  if (snapshot.displayMode === "credits") {
-    return STRINGS.STR_MODAL_TITLE_CREDITS;
-  }
-  if (snapshot.displayMode === "both") {
-    return STRINGS.STR_MODAL_TITLE_BOTH;
-  }
-  return STRINGS.STR_MODAL_TITLE_TOKENPLAN;
+  // The sidebar view always shows the same title regardless of
+  // displayMode. The displayMode affects the data blocks rendered
+  // below the header, not the header itself.
+  void snapshot;
+  return STRINGS.STR_SIDEBAR_TITLE;
 }
 
 function applyHostMessage(msg: HostMessage): void {
@@ -343,10 +384,6 @@ document.addEventListener("click", (event: MouseEvent) => {
   }
   if (target.id === "open-settings-link") {
     vscodeApi.postMessage({ kind: "openSettings" });
-    return;
-  }
-  if (target.id === "dismiss-button") {
-    vscodeApi.postMessage({ kind: "dismiss" });
     return;
   }
   if (target.classList.contains("error__cta")) {

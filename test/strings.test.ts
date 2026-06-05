@@ -10,8 +10,8 @@ describe("src/strings.ts sanity (canonical source is strings-v0.1.0.md)", () => 
     expect(STRINGS.STR_STATUSBAR_SUCCESS).toBe("5h: {5hPercent}% · 7d: {7dPercent}%");
   });
 
-  it("exports a STR_MODAL_TITLE_CREDITS constant for the credits title", () => {
-    expect(STRINGS.STR_MODAL_TITLE_CREDITS).toBe("Credits");
+  it("exports a STR_SIDEBAR_TITLE constant for the sidebar header", () => {
+    expect(STRINGS.STR_SIDEBAR_TITLE).toBe("MiniMax Usage");
   });
 
   it("exports a STR_ERROR_INVALIDKEY_BODY with two paragraphs separated by \\n\\n", () => {

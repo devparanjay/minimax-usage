@@ -1,7 +1,7 @@
 // DO NOT EDIT the string VALUES — copy from
 // `.kitchen/design/strings-v0.1.0.md` (the canonical source of
-// truth). If a string is not in this file, it does not appear in
-// the UI. The build phase imports by ID.
+// truth). If a string is not in this file, it does not appear in the
+// UI. The build phase imports by ID.
 //
 // The webview bundle and the host bundle both include this file
 // (esbuild tree-shakes). The webview does not need the host-only
@@ -30,22 +30,14 @@ export const STRINGS = {
   STR_SETTINGS_REGION_ENUM_1: "Mainland China platform — `platform.minimaxi.com`",
 
   // 3.2 minimaxUsage.displayMode
-  STR_SETTINGS_DISPLAYMODE_MD_DESC: "What the status bar and modal show.",
+  STR_SETTINGS_DISPLAYMODE_MD_DESC: "What the status bar and sidebar show.",
   STR_SETTINGS_DISPLAYMODE_ENUM_0: "Token Plan — 5-Hour and Weekly progress bars",
   STR_SETTINGS_DISPLAYMODE_ENUM_1: "Credits — Balance only",
   STR_SETTINGS_DISPLAYMODE_ENUM_2: "Both — Token Plan and Credits side by side",
   STR_SETTINGS_DISPLAYMODE_DISABLED_HINT:
     "Credits endpoint unavailable — coming in a future version",
 
-  // 3.3 minimaxUsage.modalLocation
-  STR_SETTINGS_MODALLOCATION_MD_DESC:
-    "Where the usage panel opens when you click the status bar. **Active editor** opens a panel in the current editor column (the default). **Auxiliary bar** opens a view in the right sidebar.",
-  STR_SETTINGS_MODALLOCATION_ENUM_0:
-    "Active editor — opens a panel in the current column (default)",
-  STR_SETTINGS_MODALLOCATION_ENUM_1:
-    "Auxiliary bar — opens a view in the right sidebar",
-
-  // 3.3 Custom "Subscription Key" row
+  // 3.4 Custom "Subscription Key" row
   STR_SETTINGS_APIKEY_LABEL: "Subscription Key",
   STR_SETTINGS_APIKEY_DESC: "Set or update your MiniMax Subscription Key",
   STR_SETTINGS_APIKEY_BUTTON: "Set your API key",
@@ -78,11 +70,12 @@ export const STRINGS = {
   STR_STATUSBAR_CREDITS_UNAVAILABLE_TOOLTIP:
     "Credits Balance unavailable from the official API",
 
-  // 5.1 Modal title
-  STR_MODAL_TITLE_TOKENPLAN: "MiniMax Usage",
-  STR_MODAL_TITLE_CREDITS: "Credits",
-  STR_MODAL_TITLE_BOTH: "MiniMax Usage",
-  STR_MODAL_LOADING_BODY: "Fetching usage…",
+  // 5.1 Sidebar title
+  STR_SIDEBAR_TITLE: "MiniMax Usage",
+  STR_SIDEBAR_LOADING: "Fetching usage…",
+  STR_SIDEBAR_FOOTER_SETTINGS: "Open Settings",
+  STR_SIDEBAR_REGION_OVESEAS: "Overseas",
+  STR_SIDEBAR_REGION_CN: "Mainland China",
 
   // 5.2 Block titles
   STR_BLOCK_5H_TITLE: "5-Hour Limit",

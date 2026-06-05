@@ -6,8 +6,11 @@ import { createSettingsReader } from "./settings/read";
 import { createLogger, type Logger } from "./util/logger";
 import { PollingController } from "./polling/controller";
 import { StatusBarController } from "./ui/statusBar";
-import { UsageModal } from "./ui/webview/usageModal";
-import { AuxiliaryUsageViewProvider, AUXILIARY_VIEW_ID } from "./ui/webview/auxiliaryUsageView";
+import {
+  SidebarUsageViewProvider,
+  SIDEBAR_CONTAINER_ID,
+  SIDEBAR_VIEW_ID
+} from "./ui/webview/sidebarUsageView";
 import { postFirstRun } from "./ui/notification";
 import { createCacheStore } from "./api/cache";
 import { STRINGS } from "./strings";
@@ -17,8 +20,7 @@ let extensionContext: vscode.ExtensionContext | undefined;
 interface ExtensionRefs {
   controller: PollingController;
   statusBar: StatusBarController;
-  modal: UsageModal;
-  auxiliary: AuxiliaryUsageViewProvider;
+  sidebar: SidebarUsageViewProvider;
   cache: ReturnType<typeof createCacheStore>;
   configListener: vscode.Disposable;
   secretListener: vscode.Disposable;
@@ -47,7 +49,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     100
   );
 
-  const modal = new UsageModal({
+  const sidebar = new SidebarUsageViewProvider({
     context,
     store,
     controller: undefined as unknown as PollingController,
@@ -55,21 +57,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     getApiKey: () => secretStorage.getApiKey()
   });
 
-  const auxiliary = new AuxiliaryUsageViewProvider({
-    context,
-    store,
-    controller: undefined as unknown as PollingController,
-    logger,
-    getApiKey: () => secretStorage.getApiKey()
-  });
-
+  /**
+   * Status bar click: open the left sidebar (the activity bar icon for
+   * `minimaxUsage`) and reveal the usage view. This is the popup UX
+   * for v0.1.0 — a real view in the primary (left) sidebar, not an
+   * editor tab and not a secondary-side-bar tab.
+   */
   const openUsage: () => void = () => {
-    const location = settings.readModalLocation();
-    if (location === "auxiliary") {
-      void vscode.commands.executeCommand(`workbench.view.${AUXILIARY_VIEW_ID}`);
-    } else {
-      void modal.openOrFocus();
-    }
+    void vscode.commands.executeCommand(
+      `workbench.view.${SIDEBAR_CONTAINER_ID}`
+    );
   };
 
   const statusBar = new StatusBarController(statusBarItem, {
@@ -90,28 +87,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     debounceMs: 750,
     fireAfterRefresh: (snapshot) => {
       void statusBar.render();
-      void modal.postSnapshot(snapshot);
-      auxiliary.postSnapshot(snapshot);
+      sidebar.postSnapshot(snapshot);
     }
   });
 
-  modal.attachController(controller);
   statusBar.attachController(controller);
-  auxiliary.attachController(controller);
+  sidebar.attachController(controller);
   refs.controller = controller;
   refs.statusBar = statusBar;
-  refs.modal = modal;
-  refs.auxiliary = auxiliary;
+  refs.sidebar = sidebar;
   refs.cache = cache;
   refs.logger = logger;
 
-  const auxiliaryProviderReg = vscode.window.registerWebviewViewProvider(
-    AUXILIARY_VIEW_ID,
-    auxiliary,
+  const sidebarProviderReg = vscode.window.registerWebviewViewProvider(
+    SIDEBAR_VIEW_ID,
+    sidebar,
     { webviewOptions: { retainContextWhenHidden: true } }
   );
-  context.subscriptions.push(auxiliaryProviderReg);
-  context.subscriptions.push(auxiliary);
+  context.subscriptions.push(sidebarProviderReg);
+  context.subscriptions.push(sidebar);
 
   refs.configListener = settings.onDidChangeSettings(async (change) => {
     const region = settings.readRegion();
@@ -123,8 +117,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       void controller.refreshNow("region-change", { forceRefresh: true });
     } else if (change.displayMode) {
       void statusBar.render();
-      void modal.postSnapshot(store.read());
-      auxiliary.postSnapshot(store.read());
+      sidebar.postSnapshot(store.read());
     }
   });
   context.subscriptions.push(refs.configListener);
@@ -133,7 +126,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     cache.invalidateAll();
     void controller.refreshNow("api-key-change", { forceRefresh: true });
     void statusBar.render();
-    void modal.handleApiKeyChange();
   });
   context.subscriptions.push(refs.secretListener);
 
@@ -185,25 +177,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
   context.subscriptions.push(openSettingsCmd);
 
-  const showUsageCmd = vscode.commands.registerCommand(
-    "minimaxUsage.showUsage",
-    async () => {
-      const apiKey = await secretStorage.getApiKey();
-      if (!apiKey) {
-        await vscode.commands.executeCommand("minimaxUsage.setApiKey");
-        return;
-      }
-      openUsage();
-    }
-  );
-  context.subscriptions.push(showUsageCmd);
-
   context.subscriptions.push({
     dispose: () => {
       controller.dispose();
       statusBar.dispose();
-      modal.dispose();
-      auxiliary.dispose();
+      sidebar.dispose();
     }
   });
 

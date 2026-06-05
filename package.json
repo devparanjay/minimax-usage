@@ -25,7 +25,6 @@
   "activationEvents": [
     "onStartupFinished",
     "onCommand:minimaxUsage.setApiKey",
-    "onCommand:minimaxUsage.showUsage",
     "onCommand:minimaxUsage.openSettings"
   ],
   "contributes": {
@@ -37,10 +36,6 @@
       {
         "command": "minimaxUsage.openSettings",
         "title": "MiniMax Usage: Open Settings"
-      },
-      {
-        "command": "minimaxUsage.showUsage",
-        "title": "MiniMax Usage: Show Usage"
       }
     ],
     "configuration": {
@@ -68,24 +63,11 @@
             "both"
           ],
           "default": "tokenPlan",
-          "markdownDescription": "What the status bar and modal show.",
+          "markdownDescription": "What the status bar and sidebar show.",
           "enumDescriptions": [
             "Token Plan — 5-Hour and Weekly progress bars",
             "Credits — Balance only",
             "Both — Token Plan and Credits side by side"
-          ]
-        },
-        "minimaxUsage.modalLocation": {
-          "type": "string",
-          "enum": [
-            "active",
-            "auxiliary"
-          ],
-          "default": "active",
-          "markdownDescription": "Where the usage panel opens when you click the status bar. **Active editor** opens a panel in the current editor column (the default). **Auxiliary bar** opens a view in the right sidebar.",
-          "enumDescriptions": [
-            "Active editor — opens a panel in the current column (default)",
-            "Auxiliary bar — opens a view in the right sidebar"
           ]
         },
         "minimaxUsage.subscriptionKey": {
@@ -95,7 +77,7 @@
       }
     },
     "viewsContainers": {
-      "secondarySideBar": [
+      "activitybar": [
         {
           "id": "minimaxUsage",
           "title": "MiniMax Usage",

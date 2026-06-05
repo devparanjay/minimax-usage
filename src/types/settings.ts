@@ -3,7 +3,6 @@ export type { Region } from "./contract";
 import type { Region } from "./contract";
 
 export type DisplayMode = "tokenPlan" | "credits" | "both";
-export type ModalLocation = "active" | "auxiliary";
 
 export const REGION_VALUES: readonly Region[] = ["overseas", "cn"] as const;
 export const DISPLAY_MODE_VALUES: readonly DisplayMode[] = [
@@ -11,14 +10,9 @@ export const DISPLAY_MODE_VALUES: readonly DisplayMode[] = [
   "credits",
   "both"
 ] as const;
-export const MODAL_LOCATION_VALUES: readonly ModalLocation[] = [
-  "active",
-  "auxiliary"
-] as const;
 
 export const SETTINGS_REGION_KEY = "minimaxUsage.region" as const;
 export const SETTINGS_DISPLAY_MODE_KEY = "minimaxUsage.displayMode" as const;
-export const SETTINGS_MODAL_LOCATION_KEY = "minimaxUsage.modalLocation" as const;
 
 export function isRegion(value: unknown): value is Region {
   return value === "overseas" || value === "cn";
@@ -28,8 +22,4 @@ export function isDisplayMode(value: unknown): value is DisplayMode {
   return (
     value === "tokenPlan" || value === "credits" || value === "both"
   );
-}
-
-export function isModalLocation(value: unknown): value is ModalLocation {
-  return value === "active" || value === "auxiliary";
 }
